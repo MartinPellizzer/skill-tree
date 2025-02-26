@@ -16,16 +16,18 @@ nodes.append({
     'id': 0,
     'x': 100,
     'y': 100,
-    'w': 100,
-    'h': 100,
+    'w': 160,
+    'h': 36,
+    'text': 'skill tree - LV 1/5',
 })
 
 nodes.append({
     'id': 1,
     'x': 400,
-    'y': 400,
-    'w': 100,
-    'h': 100,
+    'y': 100,
+    'w': 160,
+    'h': 36,
+    'text': 'pad - LV 1/5',
 })
 
 edges.append({
@@ -145,15 +147,6 @@ while running:
             mouse['right_click_old'] = mouse['right_click_cur']
             print('release')
         
-    # draw
-    for node in nodes:
-        x = (node['x'] + camera['x']) * camera['zoom']
-        y = (node['y'] + camera['y']) * camera['zoom']
-        w = (node['w']) * camera['zoom']
-        h = (node['h']) * camera['zoom']
-        pygame.draw.rect(screen, '#303030', pygame.Rect(x, y, w, h,), )
-        pygame.draw.rect(screen, '#303030', pygame.Rect(x, y, w, h,), 1,)
-
     for edge in edges:
         node_1_id = edge['node_1_id']
         node_2_id = edge['node_2_id']
@@ -168,6 +161,22 @@ while running:
         x_2 = (node_2['x'] + (node_2['w'] // 2) + camera['x']) * camera['zoom']
         y_2 = (node_2['y'] + (node_2['h'] // 2) + camera['y']) * camera['zoom']
         pygame.draw.line(screen, '#ffffff', (x_1, y_1), (x_2, y_2))
+
+    # draw
+    for node in nodes:
+        x = (node['x'] + camera['x']) * camera['zoom']
+        y = (node['y'] + camera['y']) * camera['zoom']
+        w = (node['w']) * camera['zoom']
+        h = (node['h']) * camera['zoom']
+        pygame.draw.rect(screen, '#303030', pygame.Rect(x, y, w, h,), )
+        pygame.draw.rect(screen, '#303030', pygame.Rect(x, y, w, h,), 1,)
+        px = 8
+        py = 8
+        font = pygame.font.SysFont('Arial', 16)
+        text_surface = font.render(f'{node["text"]}', False, (255, 255, 255))
+        screen.blit(text_surface, (x + px, y + py))
+
+
 
     # debug
     y = 24
