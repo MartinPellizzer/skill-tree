@@ -9,8 +9,28 @@ screen = pygame.display.set_mode([window_w, window_h])
 
 is_panning_begin = False
 
+# TODO: filepath to json skill tree
+
 nodes = []
 edges = []
+
+nodes.append({
+    'id': 2,
+    'x': 100,
+    'y': 300,
+    'w': 160,
+    'h': 36,
+    'text': 'Plants Benefits Art',
+})
+
+nodes.append({
+    'id': 3,
+    'x': 300,
+    'y': 300,
+    'w': 160,
+    'h': 36,
+    'text': 'Studies - LV 0/5',
+})
 
 nodes.append({
     'id': 0,
@@ -34,6 +54,12 @@ edges.append({
     'id': 0,
     'node_1_id': 0,
     'node_2_id': 1,
+})
+
+edges.append({
+    'id': 1,
+    'node_1_id': 2,
+    'node_2_id': 3,
 })
 
 camera = {
