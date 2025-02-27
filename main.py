@@ -214,11 +214,11 @@ while running:
                         json_nodes_filepath = node['json_nodes_filepath']
                         json_edges_filepath = node['json_edges_filepath']
                         if not os.path.exists(json_nodes_filepath):
-                            j = json.dumps({}, indent=4)
+                            j = json.dumps([], indent=4)
                             with open(json_nodes_filepath, 'w') as f:
                                 print(j, file=f)
                         if not os.path.exists(json_edges_filepath):
-                            j = json.dumps({}, indent=4)
+                            j = json.dumps([], indent=4)
                             with open(json_edges_filepath, 'w') as f:
                                 print(j, file=f)
                         with open(json_nodes_filepath) as f: nodes = json.load(f)
@@ -282,17 +282,20 @@ while running:
         if mouse['right_click_old'] != mouse['right_click_cur']:
             mouse['right_click_old'] = mouse['right_click_cur']
             ids = [node['id'] for node in nodes]
-            id_last = ids[-1]
-            id_next = id_last+1
+            if ids != []:
+                id_last = ids[-1]
+                id_next = id_last+1
+            else:
+                id_next = 0
             nodes.append({
                 'id': id_next,
                 'x': mouse['x'],
                 'y': mouse['y'],
                 'w': 64*3,
                 'h': 64*1,
-                'text': '',
-                'level': '',
-                'exp': '',
+                'text': '???',
+                'level': '0',
+                'exp': '0',
             })
             print('click')
     else:
@@ -340,9 +343,10 @@ while running:
         screen.blit(text_surface, (x + px, y + py))
         px = 8
         py += 8 + 16
-        text_surface = font.render(f'EXP: 0', False, (255, 255, 255))
+        text = f'EXP: {node["exp"]}'
+        text_surface = font.render(text, False, (255, 255, 255))
         screen.blit(text_surface, (x + px, y + py))
-        text = f'LVL: 1'
+        text = f'LVL: {node["level"]}'
         text_w, text_h = font.size(text)
         text_surface = font.render(text, False, (255, 255, 255))
         screen.blit(text_surface, (x + w - text_w - px, y + py))
