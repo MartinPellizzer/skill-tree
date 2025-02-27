@@ -36,6 +36,21 @@ nodes.append({
     'json_edges_filepath': 'trees/ozonogroup-edges.json',
 })
 
+nodes.append({
+    'id': 1,
+    'x': 64*2,
+    'y': 64*6,
+    'w': 64*3,
+    'h': 64*1,
+    'text': 'TERRAWHISPER',
+    'level': '0',
+    'exp': '0',
+    'json_nodes_filepath': 'trees/ozonogroup-nodes.json',
+    'json_edges_filepath': 'trees/ozonogroup-edges.json',
+})
+
+node_focus_id = 0
+
 '''
 nodes.append({
     'id': 0,
@@ -88,6 +103,8 @@ dragging_node_index = -1
 
 snapping_mode = False
 control_mode = False
+shift_mode = False
+line_mode = False
 
 def get_cell_hover():
     row_i = (mouse['y'] - camera['y']) // (64*camera['zoom'])
@@ -95,6 +112,14 @@ def get_cell_hover():
     return row_i, col_i
 
 font = pygame.font.SysFont('Arial', 16)
+
+line_tmp = {
+    'x_1': 0,
+    'y_1': 0,
+    'x_2': 0,
+    'y_2': 0,
+}
+
 
 running = True
 while running:
@@ -132,12 +157,16 @@ while running:
                 snapping_mode = True
             if event.key == pygame.K_LCTRL:
                 control_mode = True
+            if event.key == pygame.K_LSHIFT:
+                shift_mode = True
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_LALT:
                 snapping_mode = False
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_LCTRL:
                 control_mode = False
+            if event.key == pygame.K_LSHIFT:
+                shift_mode = False
 
     screen.fill('#101010')
 
@@ -179,6 +208,7 @@ while running:
                 x_2 = (node['x'] + node['w'] + camera['x']) * camera['zoom']
                 y_2 = (node['y'] + node['h'] + camera['y']) * camera['zoom']
                 if mouse['x'] >= x_1 and mouse['y'] >= y_1 and mouse['x'] < x_2 and mouse['y'] < y_2:
+                    node_focus_id = node['id']
                     # control click
                     if control_mode == True:
                         json_nodes_filepath = node['json_nodes_filepath']
@@ -194,6 +224,10 @@ while running:
                         with open(json_nodes_filepath) as f: nodes = json.load(f)
                         with open(json_edges_filepath) as f: edges = json.load(f)
                     # drag
+                    elif shift_mode == True:
+                        line_tmp['x_1'] = (x_1 + x_2) // 2
+                        line_tmp['y_1'] = (y_1 + y_2) // 2
+                        line_mode = True
                     else:
                         node_id = node['id']
                         dragging_node = True
@@ -208,6 +242,39 @@ while running:
             mouse['left_click_old'] = mouse['left_click_cur']
             dragging_node = False
             dragging_node_index = -1
+            # drag edge e create if valid
+            if line_mode == True:
+                line_mode = False
+                for i, node in enumerate(nodes):
+                    x_1 = (node['x'] + camera['x']) * camera['zoom']
+                    y_1 = (node['y'] + camera['y']) * camera['zoom']
+                    x_2 = (node['x'] + node['w'] + camera['x']) * camera['zoom']
+                    y_2 = (node['y'] + node['h'] + camera['y']) * camera['zoom']
+                    if mouse['x'] >= x_1 and mouse['y'] >= y_1 and mouse['x'] < x_2 and mouse['y'] < y_2:
+                        # check if not released on self
+                        if node['id'] != node_focus_id:
+                            node_1_id = node_focus_id
+                            node_2_id = node['id']
+                            # check if edge already exists
+                            nodes_1_ids = [edge['node_1_id'] for edge in edges]
+                            nodes_2_ids = [edge['node_2_id'] for edge in edges]
+                            if (
+                                (node_1_id not in nodes_1_ids and node_2_id not in nodes_2_ids) and
+                                (node_2_id not in nodes_1_ids and node_1_id not in nodes_2_ids)
+                            ):
+                                # create
+                                ids = [edge['id'] for edge in edges]
+                                if ids != []:
+                                    id_last = ids[-1]
+                                    id_next = id_last+1
+                                else:
+                                    id_next = 0
+                                edges.append({
+                                    'id': id_next,
+                                    'node_1_id': node_1_id,
+                                    'node_2_id': node_2_id,
+                                })
+                            
         
     # add node
     if pygame.mouse.get_pressed()[2] == True: # right click
@@ -265,7 +332,8 @@ while running:
         w = (node['w']) * camera['zoom']
         h = (node['h']) * camera['zoom']
         pygame.draw.rect(screen, '#303030', pygame.Rect(x, y, w, h,), )
-        pygame.draw.rect(screen, '#303030', pygame.Rect(x, y, w, h,), 1,)
+        if node['id'] == node_focus_id:
+            pygame.draw.rect(screen, '#ffffff', pygame.Rect(x, y, w, h,), 1,)
         px = 8
         py = 8
         text_surface = font.render(f'{node["text"]}', False, (255, 255, 255))
@@ -274,13 +342,19 @@ while running:
         py += 8 + 16
         text_surface = font.render(f'EXP: 0', False, (255, 255, 255))
         screen.blit(text_surface, (x + px, y + py))
-
         text = f'LVL: 1'
         text_w, text_h = font.size(text)
         text_surface = font.render(text, False, (255, 255, 255))
         screen.blit(text_surface, (x + w - text_w - px, y + py))
 
 
+    if line_mode == True:
+        # ;jump
+        x_1 = line_tmp['x_1']
+        y_1 = line_tmp['y_1']
+        x_2 = mouse['x']
+        y_2 = mouse['y']
+        pygame.draw.line(screen, '#ffffff', (x_1, y_1), (x_2, y_2))
 
     # debug
     y = 24
@@ -303,6 +377,14 @@ while running:
     y += 24
 
     text_surface = font.render(f'snapping_mode: {snapping_mode}', False, (255, 255, 255))
+    screen.blit(text_surface, (0, y))
+    y += 24
+
+    text_surface = font.render(f'shift_mode: {shift_mode}', False, (255, 255, 255))
+    screen.blit(text_surface, (0, y))
+    y += 24
+
+    text_surface = font.render(f'edges_num: {len(edges)}', False, (255, 255, 255))
     screen.blit(text_surface, (0, y))
     y += 24
 
