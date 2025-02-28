@@ -1,0 +1,38 @@
+[
+    {
+        "id": 0,
+        "x": 128,
+        "y": 256,
+        "w": 192,
+        "h": 64,
+        "text": "ozonogroup",
+        "level": "0",
+        "exp": "0",
+        "json_nodes_filepath": "trees/ozonogroup/nodes.json",
+        "json_edges_filepath": "trees/ozonogroup/edges.json"
+    },
+    {
+        "id": 1,
+        "x": 128,
+        "y": 384,
+        "w": 192,
+        "h": 64,
+        "text": "terrawhisper",
+        "level": "0",
+        "exp": "0",
+        "json_nodes_filepath": "trees/terrawhisper/nodes.json",
+        "json_edges_filepath": "trees/terrawhisper/edges.json"
+    },
+    {
+        "id": 2,
+        "x": 128,
+        "y": 512,
+        "w": 192,
+        "h": 64,
+        "text": "martinpellizzer",
+        "level": "0",
+        "exp": "0",
+        "json_nodes_filepath": "trees/martinpellizzer/nodes.json",
+        "json_edges_filepath": "trees/martinpellizzer/edges.json"
+    }
+]

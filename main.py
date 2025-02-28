@@ -12,28 +12,21 @@ screen = pygame.display.set_mode([window_w, window_h])
 
 is_panning_begin = False
 
-json_nodes_filepath = 'nodes.json'
-json_edges_filepath = 'edges.json'
 nodes = []
 edges = []
 
-with open(json_nodes_filepath) as f: nodes = json.load(f)
-with open(json_edges_filepath) as f: edges = json.load(f)
-
-nodes = []
-edges = []
-
+'''
 nodes.append({
     'id': 0,
     'x': 64*2,
     'y': 64*4,
     'w': 64*3,
     'h': 64*1,
-    'text': 'OZONOGROUP',
+    'text': 'ozonogroup',
     'level': '0',
     'exp': '0',
-    'json_nodes_filepath': 'trees/ozonogroup-nodes.json',
-    'json_edges_filepath': 'trees/ozonogroup-edges.json',
+    'json_nodes_filepath': 'trees/ozonogroup/nodes.json',
+    'json_edges_filepath': 'trees/ozonogroup/edges.json',
 })
 
 nodes.append({
@@ -42,14 +35,39 @@ nodes.append({
     'y': 64*6,
     'w': 64*3,
     'h': 64*1,
-    'text': 'TERRAWHISPER',
+    'text': 'terrawhisper',
     'level': '0',
     'exp': '0',
-    'json_nodes_filepath': 'trees/ozonogroup-nodes.json',
-    'json_edges_filepath': 'trees/ozonogroup-edges.json',
+    'json_nodes_filepath': 'trees/terrawhisper/nodes.json',
+    'json_edges_filepath': 'trees/terrawhisper/edges.json',
 })
 
-node_focus_id = 0
+nodes.append({
+    'id': 1,
+    'x': 64*2,
+    'y': 64*8,
+    'w': 64*3,
+    'h': 64*1,
+    'text': 'martinpellizzer',
+    'level': '0',
+    'exp': '0',
+    'json_nodes_filepath': 'trees/martinpellizzer/nodes.json',
+    'json_edges_filepath': 'trees/martinpellizzer/edges.json',
+})
+'''
+
+json_nodes_filepath = 'trees/nodes.json'
+json_edges_filepath = 'trees/edges.json'
+
+try: 
+    with open(json_nodes_filepath) as f: nodes = json.load(f)
+except: pass
+try: 
+    with open(json_edges_filepath) as f: edges = json.load(f)
+except: pass
+
+node_focus_index = -1
+node_focus_id = -1
 
 '''
 nodes.append({
@@ -148,17 +166,32 @@ while running:
                 j = json.dumps(edges, indent=4)
                 with open(json_edges_filepath, 'w') as f:
                     print(j, file=f)
-            if event.key == pygame.K_l and pygame.key.get_mods() & pygame.KMOD_CTRL:
+            elif event.key == pygame.K_l and pygame.key.get_mods() & pygame.KMOD_CTRL:
                 with open(json_nodes_filepath) as f:
                     nodes = json.load(f)
                 with open(json_edges_filepath) as f:
                     edges = json.load(f)
-            if event.key == pygame.K_LALT:
+            elif event.key == pygame.K_LALT:
                 snapping_mode = True
-            if event.key == pygame.K_LCTRL:
+            elif event.key == pygame.K_LCTRL:
                 control_mode = True
-            if event.key == pygame.K_LSHIFT:
+            elif event.key == pygame.K_LSHIFT:
                 shift_mode = True
+            elif event.key == pygame.K_KP_MINUS:
+                nodes[node_focus_index]['level'] = str(int(nodes[node_focus_index]['level']) - 1)
+            elif event.key == pygame.K_KP_PLUS:
+                nodes[node_focus_index]['level'] = str(int(nodes[node_focus_index]['level']) + 1)
+            elif event.key == pygame.K_ESCAPE:
+                with open('trees/nodes.json') as f:
+                    nodes = json.load(f)
+                with open('trees/edges.json') as f:
+                    edges = json.load(f)
+            elif event.key == pygame.K_BACKSPACE:
+                if node_focus_index >= 0:
+                    nodes[node_focus_index]['text'] = nodes[node_focus_index]['text'][:-1]
+            else:
+                _key = pygame.key.name(event.key)
+                nodes[node_focus_index]['text'] += _key
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_LALT:
                 snapping_mode = False
@@ -208,6 +241,7 @@ while running:
                 x_2 = (node['x'] + node['w'] + camera['x']) * camera['zoom']
                 y_2 = (node['y'] + node['h'] + camera['y']) * camera['zoom']
                 if mouse['x'] >= x_1 and mouse['y'] >= y_1 and mouse['x'] < x_2 and mouse['y'] < y_2:
+                    node_focus_index = i
                     node_focus_id = node['id']
                     # control click
                     if control_mode == True:
@@ -259,9 +293,11 @@ while running:
                             nodes_1_ids = [edge['node_1_id'] for edge in edges]
                             nodes_2_ids = [edge['node_2_id'] for edge in edges]
                             if (
-                                (node_1_id not in nodes_1_ids and node_2_id not in nodes_2_ids) and
-                                (node_2_id not in nodes_1_ids and node_1_id not in nodes_2_ids)
+                                (node_1_id in nodes_1_ids and node_2_id in nodes_2_ids) or
+                                (node_2_id in nodes_1_ids and node_1_id in nodes_2_ids)
                             ):
+                                pass
+                            else:
                                 # create
                                 ids = [edge['id'] for edge in edges]
                                 if ids != []:
