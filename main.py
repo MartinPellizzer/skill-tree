@@ -69,32 +69,6 @@ except: pass
 node_focus_index = -1
 node_focus_id = -1
 
-'''
-nodes.append({
-    'id': 0,
-    'x': 64*2,
-    'y': 64*4,
-    'w': 64*3,
-    'h': 64*1,
-    'text': 'Plants Benefits Art',
-})
-
-nodes.append({
-    'id': 1,
-    'x': 64*6,
-    'y': 64*4,
-    'w': 64*3,
-    'h': 64*1,
-    'text': 'Studies - LV 0/5',
-})
-
-edges.append({
-    'id': 0,
-    'node_1_id': 0,
-    'node_2_id': 1,
-})
-'''
-
 camera = {
     'x': 0,
     'y': 0,
@@ -138,6 +112,94 @@ line_tmp = {
     'y_2': 0,
 }
 
+def draw_grid():
+    for i in range(20):
+        for j in range(20):
+            x = (64*j + camera['x']) * camera['zoom']
+            y = (64*i + camera['y']) * camera['zoom']
+            w = 64*camera['zoom']
+            h = 64*camera['zoom']
+            pygame.draw.rect(screen, '#303030', pygame.Rect(x, y, w, h,), 1,)
+
+def draw_edges():
+    for edge in edges:
+        node_1_id = edge['node_1_id']
+        node_2_id = edge['node_2_id']
+        node_1 = None
+        node_2 = None
+        for node in nodes:
+            node_id = node['id']
+            if node_id == node_1_id: node_1 = node
+            elif node_id == node_2_id: node_2 = node
+        x_1 = (node_1['x'] + (node_1['w'] // 2) + camera['x']) * camera['zoom']
+        y_1 = (node_1['y'] + (node_1['h'] // 2) + camera['y']) * camera['zoom']
+        x_2 = (node_2['x'] + (node_2['w'] // 2) + camera['x']) * camera['zoom']
+        y_2 = (node_2['y'] + (node_2['h'] // 2) + camera['y']) * camera['zoom']
+        pygame.draw.line(screen, '#ffffff', (x_1, y_1), (x_2, y_2))
+
+def draw_edge_tmp():
+    if line_mode == True:
+        x_1 = line_tmp['x_1']
+        y_1 = line_tmp['y_1']
+        x_2 = mouse['x']
+        y_2 = mouse['y']
+        pygame.draw.line(screen, '#ffffff', (x_1, y_1), (x_2, y_2))
+
+def draw_nodes():
+    for node in nodes:
+        x = (node['x'] + camera['x']) * camera['zoom']
+        y = (node['y'] + camera['y']) * camera['zoom']
+        w = (node['w']) * camera['zoom']
+        h = (node['h']) * camera['zoom']
+        pygame.draw.rect(screen, '#303030', pygame.Rect(x, y, w, h,), )
+        if node['id'] == node_focus_id:
+            pygame.draw.rect(screen, '#ffffff', pygame.Rect(x, y, w, h,), 1,)
+        px = 8
+        py = 8
+        text_surface = font.render(f'{node["text"]}', False, (255, 255, 255))
+        screen.blit(text_surface, (x + px, y + py))
+        px = 8
+        py += 8 + 16
+        text = f'EXP: {node["exp"]}'
+        text_surface = font.render(text, False, (255, 255, 255))
+        screen.blit(text_surface, (x + px, y + py))
+        text = f'LVL: {node["level"]}'
+        text_w, text_h = font.size(text)
+        text_surface = font.render(text, False, (255, 255, 255))
+        screen.blit(text_surface, (x + w - text_w - px, y + py))
+
+def draw_debug():
+    y = 24
+    text_surface = font.render(f'x: {mouse["x"]} - y: {mouse["y"]}', False, (255, 255, 255))
+    screen.blit(text_surface, (0, y))
+    y += 24
+    row_i, col_i = get_cell_hover()
+    text_surface = font.render(f'row: {row_i} - col: {col_i}', False, (255, 255, 255))
+    screen.blit(text_surface, (0, y))
+    y += 24
+    text_surface = font.render(f'camera_x: {camera["x"]} - camera_y: {camera["y"]}', False, (255, 255, 255))
+    screen.blit(text_surface, (0, y))
+    y += 24
+    text_surface = font.render(f'camera_zoom: {camera["zoom"]}', False, (255, 255, 255))
+    screen.blit(text_surface, (0, y))
+    y += 24
+    text_surface = font.render(f'snapping_mode: {snapping_mode}', False, (255, 255, 255))
+    screen.blit(text_surface, (0, y))
+    y += 24
+    text_surface = font.render(f'shift_mode: {shift_mode}', False, (255, 255, 255))
+    screen.blit(text_surface, (0, y))
+    y += 24
+    text_surface = font.render(f'edges_num: {len(edges)}', False, (255, 255, 255))
+    screen.blit(text_surface, (0, y))
+    y += 24
+
+def draw_main():
+    draw_grid()
+    draw_edges()
+    draw_edge_tmp()
+    draw_nodes()
+    draw_debug()
+    pygame.display.flip()
 
 running = True
 while running:
@@ -340,94 +402,6 @@ while running:
             mouse['right_click_old'] = mouse['right_click_cur']
             print('release')
         
-    # draw
-    # grid
-    for i in range(20):
-        for j in range(20):
-            x = (64*j + camera['x']) * camera['zoom']
-            y = (64*i + camera['y']) * camera['zoom']
-            w = 64*camera['zoom']
-            h = 64*camera['zoom']
-            pygame.draw.rect(screen, '#303030', pygame.Rect(x, y, w, h,), 1,)
-
-    for edge in edges:
-        node_1_id = edge['node_1_id']
-        node_2_id = edge['node_2_id']
-        node_1 = None
-        node_2 = None
-        for node in nodes:
-            node_id = node['id']
-            if node_id == node_1_id: node_1 = node
-            elif node_id == node_2_id: node_2 = node
-        x_1 = (node_1['x'] + (node_1['w'] // 2) + camera['x']) * camera['zoom']
-        y_1 = (node_1['y'] + (node_1['h'] // 2) + camera['y']) * camera['zoom']
-        x_2 = (node_2['x'] + (node_2['w'] // 2) + camera['x']) * camera['zoom']
-        y_2 = (node_2['y'] + (node_2['h'] // 2) + camera['y']) * camera['zoom']
-        pygame.draw.line(screen, '#ffffff', (x_1, y_1), (x_2, y_2))
-
-    for node in nodes:
-        x = (node['x'] + camera['x']) * camera['zoom']
-        y = (node['y'] + camera['y']) * camera['zoom']
-        w = (node['w']) * camera['zoom']
-        h = (node['h']) * camera['zoom']
-        pygame.draw.rect(screen, '#303030', pygame.Rect(x, y, w, h,), )
-        if node['id'] == node_focus_id:
-            pygame.draw.rect(screen, '#ffffff', pygame.Rect(x, y, w, h,), 1,)
-        px = 8
-        py = 8
-        text_surface = font.render(f'{node["text"]}', False, (255, 255, 255))
-        screen.blit(text_surface, (x + px, y + py))
-        px = 8
-        py += 8 + 16
-        text = f'EXP: {node["exp"]}'
-        text_surface = font.render(text, False, (255, 255, 255))
-        screen.blit(text_surface, (x + px, y + py))
-        text = f'LVL: {node["level"]}'
-        text_w, text_h = font.size(text)
-        text_surface = font.render(text, False, (255, 255, 255))
-        screen.blit(text_surface, (x + w - text_w - px, y + py))
-
-
-    if line_mode == True:
-        # ;jump
-        x_1 = line_tmp['x_1']
-        y_1 = line_tmp['y_1']
-        x_2 = mouse['x']
-        y_2 = mouse['y']
-        pygame.draw.line(screen, '#ffffff', (x_1, y_1), (x_2, y_2))
-
-    # debug
-    y = 24
-
-    text_surface = font.render(f'x: {mouse["x"]} - y: {mouse["y"]}', False, (255, 255, 255))
-    screen.blit(text_surface, (0, y))
-    y += 24
-
-    row_i, col_i = get_cell_hover()
-    text_surface = font.render(f'row: {row_i} - col: {col_i}', False, (255, 255, 255))
-    screen.blit(text_surface, (0, y))
-    y += 24
-
-    text_surface = font.render(f'camera_x: {camera["x"]} - camera_y: {camera["y"]}', False, (255, 255, 255))
-    screen.blit(text_surface, (0, y))
-    y += 24
-
-    text_surface = font.render(f'camera_zoom: {camera["zoom"]}', False, (255, 255, 255))
-    screen.blit(text_surface, (0, y))
-    y += 24
-
-    text_surface = font.render(f'snapping_mode: {snapping_mode}', False, (255, 255, 255))
-    screen.blit(text_surface, (0, y))
-    y += 24
-
-    text_surface = font.render(f'shift_mode: {shift_mode}', False, (255, 255, 255))
-    screen.blit(text_surface, (0, y))
-    y += 24
-
-    text_surface = font.render(f'edges_num: {len(edges)}', False, (255, 255, 255))
-    screen.blit(text_surface, (0, y))
-    y += 24
-
-    pygame.display.flip()
+    draw_main()
 
 pygame.quit()
