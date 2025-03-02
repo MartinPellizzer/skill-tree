@@ -29,18 +29,43 @@ x = 64*8
 y = 64*4
 w = 64*3
 h = 64*1
-node_new = {
+node_0 = {
     'id': 0,
     'x': x,
     'y': y,
     'w': w,
     'h': h,
-    'text': 'node 1',
-    'socket_in': socket_0,
-    'socket_out': socket_1,
+    'text': 'skill 1',
+    'socket_input': None,
+    'socket_output': socket_0,
 }
 
-nodes_new.append(node_new)
+x = 64*14
+y = 64*4
+w = 64*3
+h = 64*1
+node_1 = {
+    'id': 0,
+    'x': x,
+    'y': y,
+    'w': w,
+    'h': h,
+    'text': 'skill 2',
+    'socket_input': socket_1,
+    'socket_output': None,
+}
+nodes_new.append(node_0)
+nodes_new.append(node_1)
+
+edges_new = []
+'''
+edge_0 = {
+    'id': 0,
+    'socket_input': socket_0,
+    'socket_output': socket_1,
+}
+edges_new.append(edge_0)
+'''
 
 '''
 nodes.append({
@@ -177,14 +202,6 @@ def draw_edges():
         y_2 = (node_2['y'] + (node_2['h'] // 2) + camera['y']) * camera['zoom']
         pygame.draw.line(screen, '#ffffff', (x_1, y_1), (x_2, y_2))
 
-def draw_edge_tmp():
-    if line_mode == True:
-        x_1 = line_tmp['x_1']
-        y_1 = line_tmp['y_1']
-        x_2 = mouse['x']
-        y_2 = mouse['y']
-        pygame.draw.line(screen, '#ffffff', (x_1, y_1), (x_2, y_2))
-
 def draw_nodes():
     for node in nodes:
         x = (node['x'] + camera['x']) * camera['zoom']
@@ -238,13 +255,15 @@ def draw_nodes_new():
         text_surface = font.render(f'{node["text"]}', False, (255, 255, 255))
         screen.blit(text_surface, (x + px, y + py))
 
-        x = get_socket_input_cx(node)
-        y = get_socket_input_cy(node)
-        pygame.draw.circle(screen, '#ffffff', (x, y), 10)
+        if node['socket_input'] != None:
+            x = get_socket_input_cx(node)
+            y = get_socket_input_cy(node)
+            pygame.draw.circle(screen, '#ffffff', (x, y), 10)
 
-        x = get_socket_output_cx(node)
-        y = get_socket_output_cy(node)
-        pygame.draw.circle(screen, '#ffffff', (x, y), 10)
+        if node['socket_output'] != None:
+            x = get_socket_output_cx(node)
+            y = get_socket_output_cy(node)
+            pygame.draw.circle(screen, '#ffffff', (x, y), 10)
 
 def draw_debug():
     y = 24
@@ -279,6 +298,7 @@ def draw_main():
     draw_debug()
 
     draw_nodes_new()
+    draw_edges_new()
 
    
     pygame.display.flip()
@@ -310,7 +330,48 @@ def node_delete():
         edges = edges_keep
         del nodes[node_focus_index]
 
+def init_edge_tmp():
+    global line_mode
+    for i, node in enumerate(nodes_new):
+        x = get_socket_input_cx(node)
+        y = get_socket_input_cy(node)
+        if mouse['x'] >= x - 10 and mouse['y'] >= y - 10 and mouse['x'] <= x + 10 and mouse['y'] <= y + 10:
+            line_tmp['x_1'] = x
+            line_tmp['y_1'] = y
+            line_mode = True
+        x = get_socket_output_cx(node)
+        y = get_socket_output_cy(node)
+        if mouse['x'] >= x - 10 and mouse['y'] >= y - 10 and mouse['x'] <= x + 10 and mouse['y'] <= y + 10:
+            line_tmp['x_1'] = x
+            line_tmp['y_1'] = y
+            line_mode = True
 
+def draw_edge_tmp():
+    if line_mode == True:
+        x_1 = line_tmp['x_1']
+        y_1 = line_tmp['y_1']
+        x_2 = mouse['x']
+        y_2 = mouse['y']
+        pygame.draw.line(screen, '#ffffff', (x_1, y_1), (x_2, y_2))
+
+def draw_edges_new():
+    for edge in edges_new:
+        socket_output_id = edge['socket_output']['id']
+        x1 = -1
+        y1 = -1
+        x2 = -1
+        y2 = -1
+        for node in nodes_new:
+            if node['socket_input'] != None:
+                if node['socket_input']['id'] == edge['socket_input']['id']:
+                    x1 = get_socket_input_cx(node)
+                    y1 = get_socket_input_cy(node)
+            if node['socket_output'] != None:
+                if node['socket_output']['id'] == edge['socket_output']['id']:
+                    x2 = get_socket_output_cx(node)
+                    y2 = get_socket_output_cy(node)
+        if x1 != -1 and y1 != -1 and x2 != -1 and y2 != -1:
+            pygame.draw.line(screen, '#ffffff', (x1, y1), (x2, y2))
 
 running = True
 while running:
@@ -435,19 +496,8 @@ while running:
                         mouse['y_drag_start'] = mouse['y']
                         node_drag_x_start = node['x']
                         node_drag_y_start = node['y']
-            for i, node in enumerate(nodes_new):
-                x = get_socket_input_cx(node)
-                y = get_socket_input_cy(node)
-                if mouse['x'] >= x - 10 and mouse['y'] >= y - 10 and mouse['x'] <= x + 10 and mouse['y'] <= y + 10:
-                    line_tmp['x_1'] = x
-                    line_tmp['y_1'] = y
-                    line_mode = True
-                x = get_socket_output_cx(node)
-                y = get_socket_output_cy(node)
-                if mouse['x'] >= x - 10 and mouse['y'] >= y - 10 and mouse['x'] <= x + 10 and mouse['y'] <= y + 10:
-                    line_tmp['x_1'] = x
-                    line_tmp['y_1'] = y
-                    line_mode = True
+            
+            init_edge_tmp()
     else:
         mouse['left_click_cur'] = 0
         if mouse['left_click_old'] != mouse['left_click_cur']:
@@ -488,6 +538,28 @@ while running:
                                     'node_1_id': node_1_id,
                                     'node_2_id': node_2_id,
                                 })
+                for i, node in enumerate(nodes_new):
+                    x = get_socket_input_cx(node)
+                    y = get_socket_input_cy(node)
+                    if mouse['x'] >= x - 10 and mouse['y'] >= y - 10 and mouse['x'] <= x + 10 and mouse['y'] <= y + 10:
+                        # test data
+                        edge_new = {
+                            'id': 0,
+                            'socket_input': socket_0,
+                            'socket_output': socket_1,
+                        }
+                        edges_new.append(edge_new)
+
+                    x = get_socket_output_cx(node)
+                    y = get_socket_output_cy(node)
+                    if mouse['x'] >= x - 10 and mouse['y'] >= y - 10 and mouse['x'] <= x + 10 and mouse['y'] <= y + 10:
+                        # test data
+                        edge_new = {
+                            'id': 0,
+                            'socket_input': socket_0,
+                            'socket_output': socket_1,
+                        }
+                        edges_new.append(edge_new)
                             
         
     # add node
