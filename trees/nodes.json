@@ -34,5 +34,29 @@
         "exp": "0",
         "json_nodes_filepath": "trees/martinpellizzer/nodes.json",
         "json_edges_filepath": "trees/martinpellizzer/edges.json"
+    },
+    {
+        "id": 3,
+        "x": 128,
+        "y": 640,
+        "w": 192,
+        "h": 64,
+        "text": "game-tactics",
+        "level": "0",
+        "exp": "0",
+        "json_nodes_filepath": "trees/game-tactics/nodes.json",
+        "json_edges_filepath": "trees/game-tactics/edges.json"
+    },
+    {
+        "id": 4,
+        "x": 128,
+        "y": 768,
+        "w": 192,
+        "h": 64,
+        "text": "skill-tree",
+        "level": "0",
+        "exp": "0",
+        "json_nodes_filepath": "trees/skill-tree/nodes.json",
+        "json_edges_filepath": "trees/skill-tree/edges.json"
     }
 ]

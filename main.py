@@ -43,7 +43,7 @@ nodes.append({
 })
 
 nodes.append({
-    'id': 1,
+    'id': 2,
     'x': 64*2,
     'y': 64*8,
     'w': 64*3,
@@ -53,6 +53,19 @@ nodes.append({
     'exp': '0',
     'json_nodes_filepath': 'trees/martinpellizzer/nodes.json',
     'json_edges_filepath': 'trees/martinpellizzer/edges.json',
+})
+
+nodes.append({
+    'id': 3,
+    'x': 64*2,
+    'y': 64*10,
+    'w': 64*3,
+    'h': 64*1,
+    'text': 'game-tactics',
+    'level': '0',
+    'exp': '0',
+    'json_nodes_filepath': 'trees/game-tactics/nodes.json',
+    'json_edges_filepath': 'trees/game-tactics/edges.json',
 })
 '''
 
@@ -201,6 +214,34 @@ def draw_main():
     draw_debug()
     pygame.display.flip()
 
+def camera_pan():
+    global is_panning_begin
+    if pygame.mouse.get_pressed()[1] == True: # middle click
+        if not is_panning_begin:
+            is_panning_begin = True
+            camera['x_pan_start'] = camera['x']
+            camera['y_pan_start'] = camera['y']
+            mouse['x_pan_start'] = mouse['x']
+            mouse['y_pan_start'] = mouse['y']
+        camera['x'] = camera['x_pan_start'] + (mouse['x'] - mouse['x_pan_start']) * 1//camera['zoom']
+        camera['y'] = camera['y_pan_start'] + (mouse['y'] - mouse['y_pan_start']) * 1//camera['zoom']
+    else:
+        is_panning_begin = False
+
+def node_delete():
+    global edges
+    if node_focus_index >= 0:
+        edges_keep = []
+        for i in range(len(edges)):
+            edge = edges[i]
+            node_id = nodes[node_focus_index]['id']
+            if edge['node_1_id'] != node_id and edge['node_2_id'] != node_id: 
+                edges_keep.append(edge)
+        edges = edges_keep
+        del nodes[node_focus_index]
+
+
+
 running = True
 while running:
     for event in pygame.event.get():
@@ -248,6 +289,8 @@ while running:
                     nodes = json.load(f)
                 with open('trees/edges.json') as f:
                     edges = json.load(f)
+            elif event.key == pygame.K_DELETE:
+                node_delete()
             elif event.key == pygame.K_BACKSPACE:
                 if node_focus_index >= 0:
                     nodes[node_focus_index]['text'] = nodes[node_focus_index]['text'][:-1]
@@ -280,17 +323,7 @@ while running:
             nodes[dragging_node_index]['y'] = node_drag_y_start + (mouse['y'] - mouse['y_drag_start']) * 1//camera['zoom']
 
     # pan
-    if pygame.mouse.get_pressed()[1] == True: # middle click
-        if not is_panning_begin:
-            is_panning_begin = True
-            camera['x_pan_start'] = camera['x']
-            camera['y_pan_start'] = camera['y']
-            mouse['x_pan_start'] = mouse['x']
-            mouse['y_pan_start'] = mouse['y']
-        camera['x'] = camera['x_pan_start'] + (mouse['x'] - mouse['x_pan_start']) * 1//camera['zoom']
-        camera['y'] = camera['y_pan_start'] + (mouse['y'] - mouse['y_pan_start']) * 1//camera['zoom']
-    else:
-        is_panning_begin = False
+    camera_pan()
 
      # left click
     if pygame.mouse.get_pressed()[0] == True:
