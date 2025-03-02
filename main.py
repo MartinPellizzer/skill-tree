@@ -373,6 +373,202 @@ def draw_edges_new():
         if x1 != -1 and y1 != -1 and x2 != -1 and y2 != -1:
             pygame.draw.line(screen, '#ffffff', (x1, y1), (x2, y2))
 
+def create_edge():
+    for i, node in enumerate(nodes):
+        x_1 = (node['x'] + camera['x']) * camera['zoom']
+        y_1 = (node['y'] + camera['y']) * camera['zoom']
+        x_2 = (node['x'] + node['w'] + camera['x']) * camera['zoom']
+        y_2 = (node['y'] + node['h'] + camera['y']) * camera['zoom']
+        if mouse['x'] >= x_1 and mouse['y'] >= y_1 and mouse['x'] < x_2 and mouse['y'] < y_2:
+            # check if not released on self
+            if node['id'] != node_focus_id:
+                node_1_id = node_focus_id
+                node_2_id = node['id']
+                # check if edge already exists
+                nodes_1_ids = [edge['node_1_id'] for edge in edges]
+                nodes_2_ids = [edge['node_2_id'] for edge in edges]
+                if (
+                    (node_1_id in nodes_1_ids and node_2_id in nodes_2_ids) or
+                    (node_2_id in nodes_1_ids and node_1_id in nodes_2_ids)
+                ):
+                    pass
+                else:
+                    # create
+                    ids = [edge['id'] for edge in edges]
+                    if ids != []:
+                        id_last = ids[-1]
+                        id_next = id_last+1
+                    else:
+                        id_next = 0
+                    edges.append({
+                        'id': id_next,
+                        'node_1_id': node_1_id,
+                        'node_2_id': node_2_id,
+                    })
+
+def create_edge_new():
+    for i, node in enumerate(nodes_new):
+        x = get_socket_input_cx(node)
+        y = get_socket_input_cy(node)
+        if mouse['x'] >= x - 10 and mouse['y'] >= y - 10 and mouse['x'] <= x + 10 and mouse['y'] <= y + 10:
+            # test data
+            edge_new = {
+                'id': 0,
+                'socket_input': socket_0,
+                'socket_output': socket_1,
+            }
+            edges_new.append(edge_new)
+
+        x = get_socket_output_cx(node)
+        y = get_socket_output_cy(node)
+        if mouse['x'] >= x - 10 and mouse['y'] >= y - 10 and mouse['x'] <= x + 10 and mouse['y'] <= y + 10:
+            # test data
+            edge_new = {
+                'id': 0,
+                'socket_input': socket_0,
+                'socket_output': socket_1,
+            }
+            edges_new.append(edge_new)
+                            
+def create_node():
+    ids = [node['id'] for node in nodes]
+    if ids != []:
+        id_last = ids[-1]
+        id_next = id_last+1
+    else:
+        id_next = 0
+    nodes.append({
+        'id': id_next,
+        'x': mouse['x'],
+        'y': mouse['y'],
+        'w': 64*3,
+        'h': 64*1,
+        'text': '???',
+        'level': '0',
+        'exp': '0',
+    })
+
+def open_tree():
+    json_nodes_filepath = node['json_nodes_filepath']
+    json_edges_filepath = node['json_edges_filepath']
+    if not os.path.exists(json_nodes_filepath):
+        j = json.dumps([], indent=4)
+        with open(json_nodes_filepath, 'w') as f:
+            print(j, file=f)
+    if not os.path.exists(json_edges_filepath):
+        j = json.dumps([], indent=4)
+        with open(json_edges_filepath, 'w') as f:
+            print(j, file=f)
+    with open(json_nodes_filepath) as f: nodes = json.load(f)
+    with open(json_edges_filepath) as f: edges = json.load(f)
+
+def drag_node(node, i):
+    node_id = node['id']
+    dragging_node = True
+    dragging_node_index = i
+    mouse['x_drag_start'] = mouse['x']
+    mouse['y_drag_start'] = mouse['y']
+    node_drag_x_start = node['x']
+    node_drag_y_start = node['y']
+
+def init_edge_old():
+    line_tmp['x_1'] = (x_1 + x_2) // 2
+    line_tmp['y_1'] = (y_1 + y_2) // 2
+    line_mode = True
+
+def mouse_left():
+    global line_mode
+    mouse_left_press = pygame.mouse.get_pressed()[0]
+    if mouse_left_press == True:
+        mouse['left_click_cur'] = 1
+        if mouse['left_click_old'] != mouse['left_click_cur']:
+            mouse['left_click_old'] = mouse['left_click_cur']
+            for i, node in enumerate(nodes):
+                x_1 = (node['x'] + camera['x']) * camera['zoom']
+                y_1 = (node['y'] + camera['y']) * camera['zoom']
+                x_2 = (node['x'] + node['w'] + camera['x']) * camera['zoom']
+                y_2 = (node['y'] + node['h'] + camera['y']) * camera['zoom']
+                if mouse['x'] >= x_1 and mouse['y'] >= y_1 and mouse['x'] < x_2 and mouse['y'] < y_2:
+                    node_focus_index = i
+                    node_focus_id = node['id']
+                    if control_mode == True:
+                        open_tree()
+                    if shift_mode == True:
+                        init_edge_old()
+                    else:
+                        drag_node(node, i)
+            
+            init_edge_tmp()
+    else:
+        mouse['left_click_cur'] = 0
+        if mouse['left_click_old'] != mouse['left_click_cur']:
+            mouse['left_click_old'] = mouse['left_click_cur']
+            dragging_node = False
+            dragging_node_index = -1
+            if line_mode == True:
+                line_mode = False
+                create_edge()
+                create_edge_new()
+
+def mouse_right():
+    return
+    if pygame.mouse.get_pressed()[2] == True:
+        mouse['right_click_cur'] = 1
+        if mouse['right_click_old'] != mouse['right_click_cur']:
+            mouse['right_click_old'] = mouse['right_click_cur']
+            create_node()
+    else:
+        mouse['right_click_cur'] = 0
+        if mouse['right_click_old'] != mouse['right_click_cur']:
+            mouse['right_click_old'] = mouse['right_click_cur']
+            print('release')
+
+def mouse_main():
+    mouse_left()
+    mouse_right()
+
+def world_coords():
+    x = mouse['x'] - camera['x']
+    y = mouse['y'] - camera['y']
+    return x, y
+
+# TODO
+def node_create():
+    x, y = world_coords()
+    w = 64*3
+    h = 64*1
+    
+    node = {
+        'id': 0,
+        'type': 'add',
+        'x': x,
+        'y': y,
+        'w': w,
+        'h': h,
+        'text': 'skill 1',
+        'inputs': [
+            {
+                'id': 0,
+                'type': 'int',
+                'val': 0,
+            },
+            {
+                'id': 1,
+                'type': 'int',
+                'val': 0,
+            },
+        ],
+        'outputs': [
+            {
+                'id': 0,
+                'type': 'int',
+                'val': 0,
+            },
+        ],
+    }
+    nodes_new.append(node)
+
+
 running = True
 while running:
     for event in pygame.event.get():
@@ -422,6 +618,8 @@ while running:
                     edges = json.load(f)
             elif event.key == pygame.K_DELETE:
                 node_delete()
+            elif event.key == pygame.K_SPACE:
+                node_create()
             elif event.key == pygame.K_BACKSPACE:
                 if node_focus_index >= 0:
                     nodes[node_focus_index]['text'] = nodes[node_focus_index]['text'][:-1]
@@ -456,139 +654,7 @@ while running:
     # pan
     camera_pan()
 
-    # left click
-    if pygame.mouse.get_pressed()[0] == True:
-        mouse['left_click_cur'] = 1
-        if mouse['left_click_old'] != mouse['left_click_cur']:
-            mouse['left_click_old'] = mouse['left_click_cur']
-            for i, node in enumerate(nodes):
-                x_1 = (node['x'] + camera['x']) * camera['zoom']
-                y_1 = (node['y'] + camera['y']) * camera['zoom']
-                x_2 = (node['x'] + node['w'] + camera['x']) * camera['zoom']
-                y_2 = (node['y'] + node['h'] + camera['y']) * camera['zoom']
-                if mouse['x'] >= x_1 and mouse['y'] >= y_1 and mouse['x'] < x_2 and mouse['y'] < y_2:
-                    node_focus_index = i
-                    node_focus_id = node['id']
-                    # control click
-                    if control_mode == True:
-                        json_nodes_filepath = node['json_nodes_filepath']
-                        json_edges_filepath = node['json_edges_filepath']
-                        if not os.path.exists(json_nodes_filepath):
-                            j = json.dumps([], indent=4)
-                            with open(json_nodes_filepath, 'w') as f:
-                                print(j, file=f)
-                        if not os.path.exists(json_edges_filepath):
-                            j = json.dumps([], indent=4)
-                            with open(json_edges_filepath, 'w') as f:
-                                print(j, file=f)
-                        with open(json_nodes_filepath) as f: nodes = json.load(f)
-                        with open(json_edges_filepath) as f: edges = json.load(f)
-                    # drag
-                    elif shift_mode == True:
-                        line_tmp['x_1'] = (x_1 + x_2) // 2
-                        line_tmp['y_1'] = (y_1 + y_2) // 2
-                        line_mode = True
-                    else:
-                        node_id = node['id']
-                        dragging_node = True
-                        dragging_node_index = i
-                        mouse['x_drag_start'] = mouse['x']
-                        mouse['y_drag_start'] = mouse['y']
-                        node_drag_x_start = node['x']
-                        node_drag_y_start = node['y']
-            
-            init_edge_tmp()
-    else:
-        mouse['left_click_cur'] = 0
-        if mouse['left_click_old'] != mouse['left_click_cur']:
-            mouse['left_click_old'] = mouse['left_click_cur']
-            dragging_node = False
-            dragging_node_index = -1
-            # drag edge e create if valid
-            if line_mode == True:
-                line_mode = False
-                for i, node in enumerate(nodes):
-                    x_1 = (node['x'] + camera['x']) * camera['zoom']
-                    y_1 = (node['y'] + camera['y']) * camera['zoom']
-                    x_2 = (node['x'] + node['w'] + camera['x']) * camera['zoom']
-                    y_2 = (node['y'] + node['h'] + camera['y']) * camera['zoom']
-                    if mouse['x'] >= x_1 and mouse['y'] >= y_1 and mouse['x'] < x_2 and mouse['y'] < y_2:
-                        # check if not released on self
-                        if node['id'] != node_focus_id:
-                            node_1_id = node_focus_id
-                            node_2_id = node['id']
-                            # check if edge already exists
-                            nodes_1_ids = [edge['node_1_id'] for edge in edges]
-                            nodes_2_ids = [edge['node_2_id'] for edge in edges]
-                            if (
-                                (node_1_id in nodes_1_ids and node_2_id in nodes_2_ids) or
-                                (node_2_id in nodes_1_ids and node_1_id in nodes_2_ids)
-                            ):
-                                pass
-                            else:
-                                # create
-                                ids = [edge['id'] for edge in edges]
-                                if ids != []:
-                                    id_last = ids[-1]
-                                    id_next = id_last+1
-                                else:
-                                    id_next = 0
-                                edges.append({
-                                    'id': id_next,
-                                    'node_1_id': node_1_id,
-                                    'node_2_id': node_2_id,
-                                })
-                for i, node in enumerate(nodes_new):
-                    x = get_socket_input_cx(node)
-                    y = get_socket_input_cy(node)
-                    if mouse['x'] >= x - 10 and mouse['y'] >= y - 10 and mouse['x'] <= x + 10 and mouse['y'] <= y + 10:
-                        # test data
-                        edge_new = {
-                            'id': 0,
-                            'socket_input': socket_0,
-                            'socket_output': socket_1,
-                        }
-                        edges_new.append(edge_new)
-
-                    x = get_socket_output_cx(node)
-                    y = get_socket_output_cy(node)
-                    if mouse['x'] >= x - 10 and mouse['y'] >= y - 10 and mouse['x'] <= x + 10 and mouse['y'] <= y + 10:
-                        # test data
-                        edge_new = {
-                            'id': 0,
-                            'socket_input': socket_0,
-                            'socket_output': socket_1,
-                        }
-                        edges_new.append(edge_new)
-                            
-        
-    # add node
-    if pygame.mouse.get_pressed()[2] == True: # right click
-        mouse['right_click_cur'] = 1
-        if mouse['right_click_old'] != mouse['right_click_cur']:
-            mouse['right_click_old'] = mouse['right_click_cur']
-            ids = [node['id'] for node in nodes]
-            if ids != []:
-                id_last = ids[-1]
-                id_next = id_last+1
-            else:
-                id_next = 0
-            nodes.append({
-                'id': id_next,
-                'x': mouse['x'],
-                'y': mouse['y'],
-                'w': 64*3,
-                'h': 64*1,
-                'text': '???',
-                'level': '0',
-                'exp': '0',
-            })
-            print('click')
-    else:
-        mouse['right_click_cur'] = 0
-        if mouse['right_click_old'] != mouse['right_click_cur']:
-            mouse['right_click_old'] = mouse['right_click_cur']
-            print('release')
+    mouse_main()
         
     draw_main()
 
