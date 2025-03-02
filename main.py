@@ -15,6 +15,33 @@ is_panning_begin = False
 nodes = []
 edges = []
 
+nodes_new = []
+
+socket_0 = {
+    'id': 0,
+}
+
+socket_1 = {
+    'id': 0,
+}
+
+x = 64*8
+y = 64*4
+w = 64*3
+h = 64*1
+node_new = {
+    'id': 0,
+    'x': x,
+    'y': y,
+    'w': w,
+    'h': h,
+    'text': 'node 1',
+    'socket_in': socket_0,
+    'socket_out': socket_1,
+}
+
+nodes_new.append(node_new)
+
 '''
 nodes.append({
     'id': 0,
@@ -181,6 +208,44 @@ def draw_nodes():
         text_surface = font.render(text, False, (255, 255, 255))
         screen.blit(text_surface, (x + w - text_w - px, y + py))
 
+def get_socket_input_cx(node):
+    x = node['x']
+    return x
+
+def get_socket_input_cy(node):
+    y = node['y'] + (node['h']//2)
+    return y
+
+def get_socket_output_cx(node):
+    x = node['x'] + node['w']
+    return x
+
+def get_socket_output_cy(node):
+    y = node['y'] + (node['h']//2)
+    return y
+
+def draw_nodes_new():
+    for node in nodes_new:
+        x = (node['x'] + camera['x']) * camera['zoom']
+        y = (node['y'] + camera['y']) * camera['zoom']
+        w = (node['w']) * camera['zoom']
+        h = (node['h']) * camera['zoom']
+        pygame.draw.rect(screen, '#303030', pygame.Rect(x, y, w, h,), )
+        if node['id'] == node_focus_id:
+            pygame.draw.rect(screen, '#ffffff', pygame.Rect(x, y, w, h,), 1,)
+        px = 16
+        py = 8
+        text_surface = font.render(f'{node["text"]}', False, (255, 255, 255))
+        screen.blit(text_surface, (x + px, y + py))
+
+        x = get_socket_input_cx(node)
+        y = get_socket_input_cy(node)
+        pygame.draw.circle(screen, '#ffffff', (x, y), 10)
+
+        x = get_socket_output_cx(node)
+        y = get_socket_output_cy(node)
+        pygame.draw.circle(screen, '#ffffff', (x, y), 10)
+
 def draw_debug():
     y = 24
     text_surface = font.render(f'x: {mouse["x"]} - y: {mouse["y"]}', False, (255, 255, 255))
@@ -212,6 +277,10 @@ def draw_main():
     draw_edge_tmp()
     draw_nodes()
     draw_debug()
+
+    draw_nodes_new()
+
+   
     pygame.display.flip()
 
 def camera_pan():
@@ -230,6 +299,7 @@ def camera_pan():
 
 def node_delete():
     global edges
+
     if node_focus_index >= 0:
         edges_keep = []
         for i in range(len(edges)):
@@ -325,7 +395,7 @@ while running:
     # pan
     camera_pan()
 
-     # left click
+    # left click
     if pygame.mouse.get_pressed()[0] == True:
         mouse['left_click_cur'] = 1
         if mouse['left_click_old'] != mouse['left_click_cur']:
@@ -365,6 +435,19 @@ while running:
                         mouse['y_drag_start'] = mouse['y']
                         node_drag_x_start = node['x']
                         node_drag_y_start = node['y']
+            for i, node in enumerate(nodes_new):
+                x = get_socket_input_cx(node)
+                y = get_socket_input_cy(node)
+                if mouse['x'] >= x - 10 and mouse['y'] >= y - 10 and mouse['x'] <= x + 10 and mouse['y'] <= y + 10:
+                    line_tmp['x_1'] = x
+                    line_tmp['y_1'] = y
+                    line_mode = True
+                x = get_socket_output_cx(node)
+                y = get_socket_output_cy(node)
+                if mouse['x'] >= x - 10 and mouse['y'] >= y - 10 and mouse['x'] <= x + 10 and mouse['y'] <= y + 10:
+                    line_tmp['x_1'] = x
+                    line_tmp['y_1'] = y
+                    line_mode = True
     else:
         mouse['left_click_cur'] = 0
         if mouse['left_click_old'] != mouse['left_click_cur']:

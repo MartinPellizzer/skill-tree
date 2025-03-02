@@ -1,92 +1,62 @@
 [
     {
         "id": 0,
-        "node_1_id": 0,
-        "node_2_id": 1
+        "node_1_id": 19,
+        "node_2_id": 20
     },
     {
         "id": 1,
-        "node_1_id": 1,
-        "node_2_id": 2
+        "node_1_id": 20,
+        "node_2_id": 7
     },
     {
         "id": 2,
-        "node_1_id": 2,
-        "node_2_id": 3
+        "node_1_id": 7,
+        "node_2_id": 21
     },
     {
         "id": 3,
-        "node_1_id": 3,
-        "node_2_id": 4
+        "node_1_id": 21,
+        "node_2_id": 0
     },
     {
         "id": 4,
-        "node_1_id": 4,
-        "node_2_id": 5
+        "node_1_id": 20,
+        "node_2_id": 22
     },
     {
         "id": 5,
-        "node_1_id": 5,
-        "node_2_id": 6
+        "node_1_id": 22,
+        "node_2_id": 23
     },
     {
         "id": 6,
-        "node_1_id": 7,
-        "node_2_id": 8
+        "node_1_id": 20,
+        "node_2_id": 24
     },
     {
         "id": 7,
-        "node_1_id": 8,
-        "node_2_id": 9
+        "node_1_id": 24,
+        "node_2_id": 25
     },
     {
         "id": 8,
-        "node_1_id": 8,
-        "node_2_id": 10
+        "node_1_id": 25,
+        "node_2_id": 26
     },
     {
         "id": 9,
-        "node_1_id": 8,
-        "node_2_id": 11
+        "node_1_id": 21,
+        "node_2_id": 27
     },
     {
         "id": 10,
-        "node_1_id": 8,
-        "node_2_id": 12
+        "node_1_id": 23,
+        "node_2_id": 29
     },
     {
         "id": 11,
-        "node_1_id": 8,
-        "node_2_id": 13
-    },
-    {
-        "id": 12,
-        "node_1_id": 7,
-        "node_2_id": 14
-    },
-    {
-        "id": 13,
-        "node_1_id": 14,
-        "node_2_id": 15
-    },
-    {
-        "id": 14,
-        "node_1_id": 14,
-        "node_2_id": 16
-    },
-    {
-        "id": 15,
-        "node_1_id": 14,
-        "node_2_id": 17
-    },
-    {
-        "id": 16,
-        "node_1_id": 18,
-        "node_2_id": 19
-    },
-    {
-        "id": 17,
-        "node_1_id": 19,
-        "node_2_id": 20
+        "node_1_id": 29,
+        "node_2_id": 30
     }
 ]
