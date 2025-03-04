@@ -3,6 +3,8 @@ import json
 
 import pygame
 
+import lib_nodes
+
 pygame.init()
 
 window_w = 1920
@@ -13,99 +15,45 @@ screen = pygame.display.set_mode([window_w, window_h])
 nodes = []
 edges = []
 
-node_send = {
-    'id': 0,
-    'type': 'send',
-    'name': 'int',
-    'x': 64*5,
-    'y': 64*5,
-    'w': 64*3,
-    'h': 64*1,
-    'inputs': [
-    ],
-    'outputs': [
-        {
-            'id': 0,
-            'val': 2,
-        },
-    ],
-}
-
-node_send_2 = {
-    'id': 2,
-    'type': 'send',
-    'name': 'int',
-    'x': 64*5,
-    'y': 64*8,
-    'w': 64*3,
-    'h': 64*1,
-    'inputs': [
-    ],
-    'outputs': [
-        {
-            'id': 2,
-            'val': 3,
-        },
-    ],
-}
-
-node_read = {
-    'id': 1,
-    'type': 'read',
-    'name': 'double',
-    'x': 64*10,
-    'y': 64*5,
-    'w': 64*3,
-    'h': 64*1,
-    'inputs': [
-        {
-            'id': 1,
-            'val': 0,
-        },
-        {
-            'id': 3,
-            'val': 0,
-        },
-    ],
-    'outputs': [
-    ],
-}
-
-nodes.append(node_send)
-nodes.append(node_send_2)
-nodes.append(node_read)
+nodes.append(lib_nodes.node_int(_id=0, x=64*5, y=64*5))
+nodes.append(lib_nodes.node_int(_id=1, x=64*5, y=64*7))
+nodes.append(lib_nodes.node_add(_id=2))
 
 edge_0 = {
     'id': 0,
-    'input_id': 1,
-    'output_id': 0,
+    'input': {
+        'node_id': 2,
+        'socket_id': 0,
+    },
+    'output': {
+        'node_id': 0,
+        'socket_id': 0,
+    },
 }
 
 edge_1 = {
-    'id': 1,
-    'input_id': 3,
-    'output_id': 2,
+    'id': 0,
+    'input': {
+        'node_id': 2,
+        'socket_id': 1,
+    },
+    'output': {
+        'node_id': 1,
+        'socket_id': 0,
+    },
 }
 
 edges.append(edge_0)
 edges.append(edge_1)
 
-
 font = pygame.font.SysFont('Arial', 16)
 
-def get_socket_input_cx(node):
-    x = node['x']
+def get_socket_x(node, side):
+    if side == 'input': x = node['x']
+    elif side == 'output': x = node['x'] + node['w']
     return x
 
-def get_socket_input_cy(node, i=0):
-    y = node['y'] + 32*i
-    return y
-
-def get_socket_output_cx(node):
-    x = node['x'] + node['w']
-    return x
-
-def get_socket_output_cy(node, i=0):
+def get_socket_y(node, i=0):
     y = node['y'] + 32*i
     return y
 
@@ -163,19 +111,19 @@ def draw_nodes():
         text_surface = font.render(f'{node["name"]}', False, (255, 255, 255))
         screen.blit(text_surface, (x + 64, y + 16))
         for i, socket in enumerate(node['inputs']):
-            x = get_socket_input_cx(node)
-            y = get_socket_input_cy(node, i)
+            x = get_socket_x(node, 'input')
+            y = get_socket_y(node, i)
             pygame.draw.circle(screen, '#ffffff', (x, y), 10)
             text_surface = font.render(f'{socket["val"]}', False, (255, 255, 255))
             screen.blit(text_surface, (x + 16, y + 16))
-        for socket in node['outputs']:
-            x = get_socket_output_cx(node)
-            y = get_socket_output_cy(node)
+        for i, socket in enumerate(node['outputs']):
+            x = get_socket_x(node, 'output')
+            y = get_socket_y(node, i)
             pygame.draw.circle(screen, '#ffffff', (x, y), 10)
             text_surface = font.render(f'{socket["val"]}', False, (255, 255, 255))
             screen.blit(text_surface, (x + 16, y + 16))
 
-def draw_edges():
+def draw_edges_old():
     for edge in edges:
         x1 = -1
         y1 = -1
@@ -186,12 +134,35 @@ def draw_edges():
             outputs_ids = [item['id'] for item in node['outputs']]
             for i, socket in enumerate(node['inputs']):
                 if edge['input_id'] == socket['id']:
-                    x1 = get_socket_input_cx(node)
-                    y1 = get_socket_input_cy(node, i)
+                    x1 = get_socket_x(node, 'input')
+                    y1 = get_socket_y(node, i)
             for i, socket in enumerate(node['outputs']):
                 if edge['output_id'] == socket['id']:
-                    x2 = get_socket_output_cx(node)
-                    y2 = get_socket_output_cy(node, i)
+                    x2 = get_socket_x(node, 'output')
+                    y2 = get_socket_y(node, i)
+        if x1 != -1 and y1 != -1 and x2 != -1 and y2 != -1:
+            pygame.draw.line(screen, '#ffffff', (x1, y1), (x2, y2))
+
+def draw_edges():
+    for edge in edges:
+        x1 = -1
+        y1 = -1
+        x2 = -1
+        y2 = -1
+        for node in nodes:
+            if edge['input']['node_id'] == node['id']:
+                # print(edge['input']['node_id'], node['id'])
+                for i, socket in enumerate(node['inputs']):
+                    if edge['input']['socket_id'] == socket['id']:
+                        # print(edge['input']['socket_id'], socket['id'])
+                        x1 = get_socket_x(node, 'input')
+                        y1 = get_socket_y(node, i)
+            if edge['output']['node_id'] == node['id']:
+                for i, socket in enumerate(node['outputs']):
+                    if edge['output']['socket_id'] == socket['id']:
+                        # print(edge['output']['socket_id'], socket['id'])
+                        x2 = get_socket_x(node, 'output')
+                        y2 = get_socket_y(node, i)
         if x1 != -1 and y1 != -1 and x2 != -1 and y2 != -1:
             pygame.draw.line(screen, '#ffffff', (x1, y1), (x2, y2))
 
@@ -296,7 +267,7 @@ while running:
 
     # mouse_main()
         
-    updates_nodes()
+    # updates_nodes()
     draw_main()
 
 pygame.quit()
