@@ -31,12 +31,13 @@ mouse = {
 camera = {
     'x': 0,
     'y': 0,
+    'zoom': 2,
     'camera_x_start': 0,
     'camera_y_start': 0,
 }
 
-camera['x'] = 400
-camera['y'] = 100
+# camera['x'] = 400
+# camera['y'] = 100
 
 drag = {
     'state': False,
@@ -132,24 +133,25 @@ def updates_nodes():
             node_cur['name'] = res
 
 def draw_nodes():
+    socket_r = 10 * camera['zoom']
     for node in nodes:
-        x = node['x'] + camera['x']
-        y = node['y'] + camera['y']
-        w = node['w']
-        h = node['h']
+        x = (node['x'] + camera['x']) * camera['zoom']
+        y = (node['y'] + camera['y']) * camera['zoom']
+        w = (node['w'] * camera['zoom'])
+        h = (node['h'] * camera['zoom'])
         pygame.draw.rect(screen, '#303030', pygame.Rect(x, y, w, h))
         text_surface = font.render(f'{node["name"]}', False, (255, 255, 255))
         screen.blit(text_surface, (x + 64, y + 16))
         for i, socket in enumerate(node['inputs']):
             x = utils.get_socket_x(node, 'input', camera)
             y = utils.get_socket_y(node, i, camera)
-            pygame.draw.circle(screen, '#ffffff', (x, y), 10)
+            pygame.draw.circle(screen, '#ffffff', (x, y), socket_r)
             text_surface = font.render(f'{socket["val"]}', False, (255, 255, 255))
             screen.blit(text_surface, (x + 16, y + 16))
         for i, socket in enumerate(node['outputs']):
             x = utils.get_socket_x(node, 'output', camera)
             y = utils.get_socket_y(node, i, camera)
-            pygame.draw.circle(screen, '#ffffff', (x, y), 10)
+            pygame.draw.circle(screen, '#ffffff', (x, y), socket_r)
             text_surface = font.render(f'{socket["val"]}', False, (255, 255, 255))
             screen.blit(text_surface, (x + 16, y + 16))
 
@@ -174,7 +176,7 @@ def draw_edges():
                         x2 = utils.get_socket_x(node, 'output', camera)
                         y2 = utils.get_socket_y(node, i, camera)
         if x1 != -1 and y1 != -1 and x2 != -1 and y2 != -1:
-            pygame.draw.line(screen, '#ffffff', (x1, y1), (x2, y2))
+            pygame.draw.line(screen, '#ffffff', (x1, y1), (x2, y2), camera['zoom'])
 
 def draw_debug():
     y = 24
@@ -218,8 +220,8 @@ def get_clicked_node_index():
 ################################################
 def camera_pan():
     if pan['state'] == True:
-        camera['x'] = pan['camera_x_start'] + mouse['x'] - mouse['x_pan_start']
-        camera['y'] = pan['camera_y_start'] + mouse['y'] - mouse['y_pan_start']
+        camera['x'] = pan['camera_x_start'] + (mouse['x'] - mouse['x_pan_start']) // camera['zoom']
+        camera['y'] = pan['camera_y_start'] + (mouse['y'] - mouse['y_pan_start']) // camera['zoom']
 
 ################################################
 # mouse
@@ -287,6 +289,12 @@ def manage_inputs():
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        if event.type == pygame.MOUSEWHEEL:
+            camera['zoom'] += event.y
+            if event.y == -1:
+                if camera['zoom'] < 1: camera['zoom'] = 1
+            else:
+                if camera['zoom'] > 8: camera['zoom'] = 8
     mouse_main()
 
 def manage_update():
