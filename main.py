@@ -13,14 +13,31 @@ window_h = 1080
 
 screen = pygame.display.set_mode([window_w, window_h])
 
-# flags
-dragging_node = False
-dragging_node_index = -1
-node_drag_x_start = -1
-node_drag_y_start = -1
+mouse = {
+    'x': 0,
+    'y': 0,
+    'x_drag_start': 0,
+    'y_drag_start': 0,
+    'x_pan_start': 0,
+    'y_pan_start': 0,
+    'left_click_old': 0,
+    'left_click_cur': 0,
+    'right_click_old': 0,
+    'right_click_cur': 0,
+}
 
+drag = {
+    'state': False,
+    'node_index': -1,
+    'node_x_start': -1,
+    'node_y_start': -1,
+}
+
+
+'''
 node_focus_index = -1
 node_focus_id = -1
+'''
 
 nodes = []
 edges = []
@@ -168,31 +185,6 @@ def draw_debug():
     screen.blit(text_surface, (0, y))
     y += 24
 
-def draw_main():
-    # draw_grid()
-    # draw_edges()
-    # draw_edge_tmp()
-    # draw_debug()
-
-    draw_nodes()
-    draw_edges()
-
-   
-    pygame.display.flip()
-
-mouse = {
-    'x': 0,
-    'y': 0,
-    'x_drag_start': 0,
-    'y_drag_start': 0,
-    'x_pan_start': 0,
-    'y_pan_start': 0,
-    'left_click_old': 0,
-    'left_click_cur': 0,
-    'right_click_old': 0,
-    'right_click_cur': 0,
-}
-
 def get_clicked_node_index():
     node_index = -1
     for i, node in enumerate(nodes):
@@ -205,21 +197,17 @@ def get_clicked_node_index():
             break
     return node_index
 
-def drag_node():
-    global dragging_node
-    global dragging_node_index
-    global node_drag_x_start
-    global node_drag_y_start
-    if dragging_node == True:
-        print('here')
-        nodes[dragging_node_index]['x'] = node_drag_x_start + (mouse['x'] - mouse['x_drag_start'])
-        nodes[dragging_node_index]['y'] = node_drag_y_start + (mouse['y'] - mouse['y_drag_start'])
+################################################
+# mouse
+################################################
+def mouse_drag_node():
+    global drag
+    if drag['state'] == True:
+        nodes[drag['node_index']]['x'] = drag['node_x_start'] + (mouse['x'] - mouse['x_drag_start'])
+        nodes[drag['node_index']]['y'] = drag['node_y_start'] + (mouse['y'] - mouse['y_drag_start'])
 
 def mouse_left():
-    global dragging_node
-    global dragging_node_index
-    global node_drag_x_start
-    global node_drag_y_start
+    global drag
     mouse_left_press = pygame.mouse.get_pressed()[0]
     if mouse_left_press == True:
         mouse['left_click_cur'] = 1
@@ -229,59 +217,51 @@ def mouse_left():
             # selected node to drag?
             node_index = get_clicked_node_index()
             if node_index != -1:
-                dragging_node = True
-                dragging_node_index = node_index
+                drag['state'] = True
+                drag['node_index'] = node_index
                 mouse['x_drag_start'] = mouse['x']
                 mouse['y_drag_start'] = mouse['y']
-                node_drag_x_start = nodes[dragging_node_index]['x']
-                node_drag_y_start = nodes[dragging_node_index]['y']
+                drag['node_x_start'] = nodes[drag['node_index']]['x']
+                drag['node_y_start'] = nodes[drag['node_index']]['y']
     else:
         mouse['left_click_cur'] = 0
         if mouse['left_click_old'] != mouse['left_click_cur']:
             mouse['left_click_old'] = mouse['left_click_cur']
             print('left release')
-            dragging_node = False
-            dragging_node_index = -1
+            drag['state'] = False
+            drag['node_index'] = -1
 
 def mouse_main():
     mouse['x'], mouse['y'] = pygame.mouse.get_pos()
     mouse_left()
     
-def input_main():
-    mouse_main()
-
-def update_main():
-    drag_node()
-
-running = True
-while running:
+################################################
+# managers
+################################################
+def manage_inputs():
+    global running
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-    screen.fill('#101010')
+    mouse_main()
 
-    '''
-
-    # drag
-    if dragging_node == True:
-        # TODO: bugged a bit (when moving mouse doesn't snap a bit of mouse hovered cell on zoom 2) 
-        if snapping_mode == True:
-            row_i, col_i = get_cell_hover()
-            nodes[dragging_node_index]['x'] = col_i*64
-            nodes[dragging_node_index]['y'] = row_i*64
-        else:
-            nodes[dragging_node_index]['x'] = node_drag_x_start + (mouse['x'] - mouse['x_drag_start']) * 1//camera['zoom']
-            nodes[dragging_node_index]['y'] = node_drag_y_start + (mouse['y'] - mouse['y_drag_start']) * 1//camera['zoom']
-    '''
-
-    # pan
+def manage_update():
+    mouse_drag_node()
     # camera_pan()
 
-    # mouse_main()
-        
-    # updates_nodes()
-    input_main()
-    update_main()
-    draw_main()
+def manage_draw():
+    screen.fill('#101010')
+    draw_nodes()
+    draw_edges()
+    pygame.display.flip()
+
+################################################
+# main
+################################################
+running = True
+while running:
+    manage_inputs()
+    manage_update()
+    manage_draw()
 
 pygame.quit()
