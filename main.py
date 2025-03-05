@@ -4,6 +4,7 @@ import json
 import pygame
 
 import lib_nodes
+import utils
 
 pygame.init()
 
@@ -11,6 +12,15 @@ window_w = 1920
 window_h = 1080
 
 screen = pygame.display.set_mode([window_w, window_h])
+
+# flags
+dragging_node = False
+dragging_node_index = -1
+node_drag_x_start = -1
+node_drag_y_start = -1
+
+node_focus_index = -1
+node_focus_id = -1
 
 nodes = []
 edges = []
@@ -48,15 +58,6 @@ edges.append(edge_1)
 
 font = pygame.font.SysFont('Arial', 16)
 
-def get_socket_x(node, side):
-    if side == 'input': x = node['x']
-    elif side == 'output': x = node['x'] + node['w']
-    return x
-
-def get_socket_y(node, i=0):
-    y = node['y'] + 32*i
-    return y
-
 def get_edges_in(node):
     global edges
     edges_filtered = []
@@ -74,10 +75,8 @@ def updates_nodes():
             # has edge
             edges = get_edges_in(node_cur)
             if edges == []: continue
-
             edge_1 = edges[0]
             edge_2 = edges[1]
-
             res = 0
             edge_output_id = edge_1['output_id']
             # get other side of edge
@@ -88,7 +87,6 @@ def updates_nodes():
                         socket_other_val = node_check['outputs'][0]['val']
                         res += socket_other_val
                         node_cur['inputs'][0]['val'] = socket_other_val
-
             edge_output_id = edge_2['output_id']
             # get other side of edge
             print(edge_output_id)
@@ -98,7 +96,6 @@ def updates_nodes():
                         socket_other_val = node_check['outputs'][0]['val']
                         res += socket_other_val
                         node_cur['inputs'][1]['val'] = socket_other_val
-
             node_cur['name'] = res
 
 def draw_nodes():
@@ -111,37 +108,17 @@ def draw_nodes():
         text_surface = font.render(f'{node["name"]}', False, (255, 255, 255))
         screen.blit(text_surface, (x + 64, y + 16))
         for i, socket in enumerate(node['inputs']):
-            x = get_socket_x(node, 'input')
-            y = get_socket_y(node, i)
+            x = utils.get_socket_x(node, 'input')
+            y = utils.get_socket_y(node, i)
             pygame.draw.circle(screen, '#ffffff', (x, y), 10)
             text_surface = font.render(f'{socket["val"]}', False, (255, 255, 255))
             screen.blit(text_surface, (x + 16, y + 16))
         for i, socket in enumerate(node['outputs']):
-            x = get_socket_x(node, 'output')
-            y = get_socket_y(node, i)
+            x = utils.get_socket_x(node, 'output')
+            y = utils.get_socket_y(node, i)
             pygame.draw.circle(screen, '#ffffff', (x, y), 10)
             text_surface = font.render(f'{socket["val"]}', False, (255, 255, 255))
             screen.blit(text_surface, (x + 16, y + 16))
-
-def draw_edges_old():
-    for edge in edges:
-        x1 = -1
-        y1 = -1
-        x2 = -1
-        y2 = -1
-        for node in nodes:
-            inputs_ids = [item['id'] for item in node['inputs']]
-            outputs_ids = [item['id'] for item in node['outputs']]
-            for i, socket in enumerate(node['inputs']):
-                if edge['input_id'] == socket['id']:
-                    x1 = get_socket_x(node, 'input')
-                    y1 = get_socket_y(node, i)
-            for i, socket in enumerate(node['outputs']):
-                if edge['output_id'] == socket['id']:
-                    x2 = get_socket_x(node, 'output')
-                    y2 = get_socket_y(node, i)
-        if x1 != -1 and y1 != -1 and x2 != -1 and y2 != -1:
-            pygame.draw.line(screen, '#ffffff', (x1, y1), (x2, y2))
 
 def draw_edges():
     for edge in edges:
@@ -155,14 +132,14 @@ def draw_edges():
                 for i, socket in enumerate(node['inputs']):
                     if edge['input']['socket_id'] == socket['id']:
                         # print(edge['input']['socket_id'], socket['id'])
-                        x1 = get_socket_x(node, 'input')
-                        y1 = get_socket_y(node, i)
+                        x1 = utils.get_socket_x(node, 'input')
+                        y1 = utils.get_socket_y(node, i)
             if edge['output']['node_id'] == node['id']:
                 for i, socket in enumerate(node['outputs']):
                     if edge['output']['socket_id'] == socket['id']:
                         # print(edge['output']['socket_id'], socket['id'])
-                        x2 = get_socket_x(node, 'output')
-                        y2 = get_socket_y(node, i)
+                        x2 = utils.get_socket_x(node, 'output')
+                        y2 = utils.get_socket_y(node, i)
         if x1 != -1 and y1 != -1 and x2 != -1 and y2 != -1:
             pygame.draw.line(screen, '#ffffff', (x1, y1), (x2, y2))
 
@@ -203,41 +180,78 @@ def draw_main():
    
     pygame.display.flip()
 
-def node_create():
-    x, y = world_coords()
-    w = 64*3
-    h = 64*1
-    
-    node = {
-        'id': 0,
-        'type': 'add',
-        'x': x,
-        'y': y,
-        'w': 64*3,
-        'h': 64*1,
-        'text': 'skill 1',
-        'inputs': [
-            {
-                'id': 0,
-                'type': 'int',
-                'val': 0,
-            },
-            {
-                'id': 1,
-                'type': 'int',
-                'val': 0,
-            },
-        ],
-        'outputs': [
-            {
-                'id': 0,
-                'type': 'int',
-                'val': 0,
-            },
-        ],
-    }
-    nodes_new.append(node)
+mouse = {
+    'x': 0,
+    'y': 0,
+    'x_drag_start': 0,
+    'y_drag_start': 0,
+    'x_pan_start': 0,
+    'y_pan_start': 0,
+    'left_click_old': 0,
+    'left_click_cur': 0,
+    'right_click_old': 0,
+    'right_click_cur': 0,
+}
 
+def get_clicked_node_index():
+    node_index = -1
+    for i, node in enumerate(nodes):
+        x_1 = node['x']
+        y_1 = node['y']
+        x_2 = node['x'] + node['w']
+        y_2 = node['y'] + node['h']
+        if mouse['x'] >= x_1 and mouse['y'] >= y_1 and mouse['x'] < x_2 and mouse['y'] < y_2:
+            node_index = i
+            break
+    return node_index
+
+def drag_node():
+    global dragging_node
+    global dragging_node_index
+    global node_drag_x_start
+    global node_drag_y_start
+    if dragging_node == True:
+        print('here')
+        nodes[dragging_node_index]['x'] = node_drag_x_start + (mouse['x'] - mouse['x_drag_start'])
+        nodes[dragging_node_index]['y'] = node_drag_y_start + (mouse['y'] - mouse['y_drag_start'])
+
+def mouse_left():
+    global dragging_node
+    global dragging_node_index
+    global node_drag_x_start
+    global node_drag_y_start
+    mouse_left_press = pygame.mouse.get_pressed()[0]
+    if mouse_left_press == True:
+        mouse['left_click_cur'] = 1
+        if mouse['left_click_old'] != mouse['left_click_cur']:
+            mouse['left_click_old'] = mouse['left_click_cur']
+            print('left click')
+            # selected node to drag?
+            node_index = get_clicked_node_index()
+            if node_index != -1:
+                dragging_node = True
+                dragging_node_index = node_index
+                mouse['x_drag_start'] = mouse['x']
+                mouse['y_drag_start'] = mouse['y']
+                node_drag_x_start = nodes[dragging_node_index]['x']
+                node_drag_y_start = nodes[dragging_node_index]['y']
+    else:
+        mouse['left_click_cur'] = 0
+        if mouse['left_click_old'] != mouse['left_click_cur']:
+            mouse['left_click_old'] = mouse['left_click_cur']
+            print('left release')
+            dragging_node = False
+            dragging_node_index = -1
+
+def mouse_main():
+    mouse['x'], mouse['y'] = pygame.mouse.get_pos()
+    mouse_left()
+    
+def input_main():
+    mouse_main()
+
+def update_main():
+    drag_node()
 
 running = True
 while running:
@@ -247,8 +261,6 @@ while running:
     screen.fill('#101010')
 
     '''
-    # inputs/update
-    mouse['x'], mouse['y'] = pygame.mouse.get_pos()
 
     # drag
     if dragging_node == True:
@@ -268,6 +280,8 @@ while running:
     # mouse_main()
         
     # updates_nodes()
+    input_main()
+    update_main()
     draw_main()
 
 pygame.quit()

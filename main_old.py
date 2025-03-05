@@ -20,7 +20,6 @@ mouse = {
     'right_click_cur': 0,
 }
 
-
 dragging_node = False
 dragging_node_index = -1
 
@@ -381,4 +380,24 @@ while running:
                 control_mode = False
             if event.key == pygame.K_LSHIFT:
                 shift_mode = False
+
+def draw_edges_old():
+    for edge in edges:
+        x1 = -1
+        y1 = -1
+        x2 = -1
+        y2 = -1
+        for node in nodes:
+            inputs_ids = [item['id'] for item in node['inputs']]
+            outputs_ids = [item['id'] for item in node['outputs']]
+            for i, socket in enumerate(node['inputs']):
+                if edge['input_id'] == socket['id']:
+                    x1 = get_socket_x(node, 'input')
+                    y1 = get_socket_y(node, i)
+            for i, socket in enumerate(node['outputs']):
+                if edge['output_id'] == socket['id']:
+                    x2 = get_socket_x(node, 'output')
+                    y2 = get_socket_y(node, i)
+        if x1 != -1 and y1 != -1 and x2 != -1 and y2 != -1:
+            pygame.draw.line(screen, '#ffffff', (x1, y1), (x2, y2))
 
