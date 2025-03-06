@@ -36,9 +36,6 @@ camera = {
     'camera_y_start': 0,
 }
 
-# camera['x'] = 400
-# camera['y'] = 100
-
 drag = {
     'state': False,
     'node_index': -1,
@@ -50,21 +47,19 @@ pan = {
     'state': False,
 }
 
-
-'''
 node_focus_index = -1
-node_focus_id = -1
-'''
 
 nodes = []
 edges = []
 
-nodes.append(lib_nodes.node_int(_id=0, x=64*5, y=64*5))
-nodes.append(lib_nodes.node_int(_id=1, x=64*5, y=64*7))
-nodes.append(lib_nodes.node_add(_id=2))
-nodes.append(lib_nodes.node_skill(_id=3, name='ART_PLANTS', x=64*16, y=64*5))
-nodes.append(lib_nodes.node_skill(_id=4, name='TEXT (LVL 1)', x=64*21, y=64*5))
+nodes.append(lib_nodes.node_skill_start(_id=3, name='ART_PLANTS', x=64*4, y=64*5))
+nodes.append(lib_nodes.node_skill(_id=4, name='LV1: TEXT', x=64*8, y=64*5))
+nodes.append(lib_nodes.node_skill(_id=5, name='LV2: LINKS', x=64*12, y=64*5))
+nodes.append(lib_nodes.node_skill(_id=6, name='LV3: IMAGES', x=64*16, y=64*5))
+nodes.append(lib_nodes.node_skill(_id=7, name='LV4: STUDIES', x=64*20, y=64*5))
 
+nodes.append(lib_nodes.node_skill(_id=8, name='LV0: ART_PLANT', x=64*8, y=64*8))
+nodes.append(lib_nodes.node_skill(_id=9, name='LV1: TEXT', x=64*12, y=64*8))
 
 edge_0 = {
     'id': 0,
@@ -101,6 +96,54 @@ edges.append({
     },
     'output': {
         'node_id': 3,
+        'socket_id': 0,
+    },
+})
+
+edges.append({
+    'id': 3,
+    'input': {
+        'node_id': 5,
+        'socket_id': 0,
+    },
+    'output': {
+        'node_id': 4,
+        'socket_id': 0,
+    },
+})
+
+edges.append({
+    'id': 4,
+    'input': {
+        'node_id': 8,
+        'socket_id': 0,
+    },
+    'output': {
+        'node_id': 5,
+        'socket_id': 0,
+    },
+})
+
+edges.append({
+    'id': 5,
+    'input': {
+        'node_id': 9,
+        'socket_id': 0,
+    },
+    'output': {
+        'node_id': 8,
+        'socket_id': 0,
+    },
+})
+
+edges.append({
+    'id': 6,
+    'input': {
+        'node_id': 6,
+        'socket_id': 0,
+    },
+    'output': {
+        'node_id': 8,
         'socket_id': 0,
     },
 })
@@ -176,12 +219,20 @@ def update_nodes():
             edges = get_edges_in(node)
             if edges == []: continue
             edge = edges[0]
-            print(edge)
 
             socket_other = get_socket_out_of_edge(edge)
             socket_other_val = socket_other['val']
-            if socket_other_val > 0:
-                node['name'] = '1'
+
+            node['inputs'][0]['val'] = socket_other_val
+            if node['inputs'][0]['val'] > 0:
+                node['background_color'] = '#303030'
+            else:
+                node['background_color'] = '#000000'
+
+            if node['inputs'][0]['val'] > 0 and node['outputs'][0]['val'] == 0:
+                node['outline_color'] = '#fb923c'
+            else:
+                node['outline_color'] = '#303030'
 
 ################################################################
 # draw
@@ -196,12 +247,15 @@ def draw_socket_val(text, x, y):
 
 def draw_nodes():
     socket_r = 10 * camera['zoom']
-    for node in nodes:
+    for i, node in enumerate(nodes):
         x = (node['x'] + camera['x']) * camera['zoom']
         y = (node['y'] + camera['y']) * camera['zoom']
         w = (node['w'] * camera['zoom'])
         h = (node['h'] * camera['zoom'])
-        pygame.draw.rect(screen, '#303030', pygame.Rect(x, y, w, h))
+        pygame.draw.rect(screen, node['background_color'], pygame.Rect(x, y, w, h))
+        pygame.draw.rect(screen, node['outline_color'], pygame.Rect(x, y, w, h), 1)
+        if i == node_focus_index:
+            pygame.draw.rect(screen, '#ffffff', pygame.Rect(x, y, w, h), 1)
         draw_node_name(f'{node["name"]}', x, y)
         for i, socket in enumerate(node['inputs']):
             x = utils.get_socket_x(node, 'input', camera)
@@ -274,16 +328,16 @@ def camera_pan():
 # mouse
 ################################################
 def get_clicked_node_index():
-    node_index = -1
+    index = -1
     for i, node in enumerate(nodes):
         x_1 = node['x'] + camera['x']
         y_1 = node['y'] + camera['y']
         x_2 = node['x'] + camera['x'] + node['w']
         y_2 = node['y'] + camera['y'] + node['h']
         if mouse['x'] >= x_1 and mouse['y'] >= y_1 and mouse['x'] < x_2 and mouse['y'] < y_2:
-            node_index = i
+            index = i
             break
-    return node_index
+    return index
 
 def mouse_drag_node():
     global drag
@@ -292,6 +346,7 @@ def mouse_drag_node():
         nodes[drag['node_index']]['y'] = drag['node_y_start'] + (mouse['y'] - mouse['y_drag_start'])
 
 def mouse_left():
+    global node_focus_index
     global drag
     mouse_left_press = pygame.mouse.get_pressed()[0]
     if mouse_left_press == True:
@@ -300,10 +355,10 @@ def mouse_left():
             mouse['left_click_old'] = mouse['left_click_cur']
             print('left click')
             # selected node to drag?
-            node_index = get_clicked_node_index()
-            if node_index != -1:
+            node_focus_index = get_clicked_node_index()
+            if node_focus_index != -1:
                 drag['state'] = True
-                drag['node_index'] = node_index
+                drag['node_index'] = node_focus_index
                 mouse['x_drag_start'] = mouse['x']
                 mouse['y_drag_start'] = mouse['y']
                 drag['node_x_start'] = nodes[drag['node_index']]['x']
@@ -348,6 +403,20 @@ def manage_inputs():
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                running = False
+            elif event.key == pygame.K_KP_MINUS:
+                if nodes[node_focus_index]['outputs'][0]['val'] > 0:
+                    nodes[node_focus_index]['outputs'][0]['val'] -= 1
+            elif event.key == pygame.K_KP_PLUS:
+                if len(nodes[node_focus_index]['inputs']) > 0:
+                    if nodes[node_focus_index]['inputs'][0]['val'] != 0:
+                        if nodes[node_focus_index]['outputs'][0]['val'] < 10:
+                            nodes[node_focus_index]['outputs'][0]['val'] += 1
+                else:
+                    if nodes[node_focus_index]['outputs'][0]['val'] < 10:
+                        nodes[node_focus_index]['outputs'][0]['val'] += 1
         if event.type == pygame.MOUSEWHEEL:
             camera['zoom'] += event.y
             if event.y == -1:

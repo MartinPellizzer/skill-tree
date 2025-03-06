@@ -1,12 +1,35 @@
 ######################################################
 # skill
 ######################################################
+def node_skill_start(_id, name, x, y):
+    node = {
+        'id': _id,
+        'type': 'skill',
+        'name': name,
+        'background_color': '#303030',
+        'outline_color': '#303030',
+        'x': x,
+        'y': y,
+        'w': 64*3,
+        'h': 64*1,
+        'inputs': [
+        ],
+        'outputs': [
+            {
+                'id': 0,
+                'val': 1,
+            },
+        ],
+    }
+    return node
 
 def node_skill(_id, name, x, y):
     node = {
         'id': _id,
         'type': 'skill',
         'name': name,
+        'background_color': '#000000',
+        'outline_color': '#303030',
         'x': x,
         'y': y,
         'w': 64*3,
@@ -72,3 +95,4 @@ def node_add(_id):
         ],
     }
     return node
+
