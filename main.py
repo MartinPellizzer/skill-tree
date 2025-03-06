@@ -31,7 +31,7 @@ mouse = {
 camera = {
     'x': 0,
     'y': 0,
-    'zoom': 2,
+    'zoom': 1,
     'camera_x_start': 0,
     'camera_y_start': 0,
 }
@@ -62,6 +62,9 @@ edges = []
 nodes.append(lib_nodes.node_int(_id=0, x=64*5, y=64*5))
 nodes.append(lib_nodes.node_int(_id=1, x=64*5, y=64*7))
 nodes.append(lib_nodes.node_add(_id=2))
+nodes.append(lib_nodes.node_skill(_id=3, name='ART_PLANTS', x=64*16, y=64*5))
+nodes.append(lib_nodes.node_skill(_id=4, name='TEXT (LVL 1)', x=64*21, y=64*5))
+
 
 edge_0 = {
     'id': 0,
@@ -87,8 +90,20 @@ edge_1 = {
     },
 }
 
-edges.append(edge_0)
-edges.append(edge_1)
+# edges.append(edge_0)
+# edges.append(edge_1)
+
+edges.append({
+    'id': 2,
+    'input': {
+        'node_id': 4,
+        'socket_id': 0,
+    },
+    'output': {
+        'node_id': 3,
+        'socket_id': 0,
+    },
+})
 
 font = pygame.font.SysFont('Arial', 16)
 
@@ -96,12 +111,36 @@ def get_edges_in(node):
     global edges
     edges_filtered = []
     for edge in edges:
-        node_inputs_ids = [item['id'] for item in node['inputs']]
-        if edge['input_id'] in node_inputs_ids:
+        # node_inputs_ids = [item['id'] for item in node['inputs']]
+        # if edge['input']['node_id'] in node_inputs_ids:
+            # edges_filtered.append(edge)
+        if edge['input']['node_id'] == node['id']:
             edges_filtered.append(edge)
     return edges_filtered
 
-def updates_nodes():
+def get_socket_out_of_edge(edge):
+    global nodes
+    socket = {}
+    for node in nodes:
+        if edge['output']['node_id'] == node['id']:
+            found = False
+            for output in node['outputs']:
+                if edge['output']['socket_id'] == output['id']:
+                    socket = output
+                    found = True
+                    break
+            if found:
+                break
+    return socket
+
+################################################################
+# update
+################################################################
+def update_node_skill():
+    pass
+
+def update_nodes():
+    '''
     global nodes
     global edges
     for node_cur in nodes:
@@ -131,6 +170,29 @@ def updates_nodes():
                         res += socket_other_val
                         node_cur['inputs'][1]['val'] = socket_other_val
             node_cur['name'] = res
+    '''
+    for node in nodes:
+        if node['type'] == 'skill':
+            edges = get_edges_in(node)
+            if edges == []: continue
+            edge = edges[0]
+            print(edge)
+
+            socket_other = get_socket_out_of_edge(edge)
+            socket_other_val = socket_other['val']
+            if socket_other_val > 0:
+                node['name'] = '1'
+
+################################################################
+# draw
+################################################################
+def draw_node_name(text, x, y):
+    text_surface = font.render(text, False, (255, 255, 255))
+    screen.blit(text_surface, (x + 16, y + 16))
+
+def draw_socket_val(text, x, y):
+    text_surface = font.render(text, False, (255, 255, 255))
+    screen.blit(text_surface, (x + 16, y + 16))
 
 def draw_nodes():
     socket_r = 10 * camera['zoom']
@@ -140,20 +202,17 @@ def draw_nodes():
         w = (node['w'] * camera['zoom'])
         h = (node['h'] * camera['zoom'])
         pygame.draw.rect(screen, '#303030', pygame.Rect(x, y, w, h))
-        text_surface = font.render(f'{node["name"]}', False, (255, 255, 255))
-        screen.blit(text_surface, (x + 64, y + 16))
+        draw_node_name(f'{node["name"]}', x, y)
         for i, socket in enumerate(node['inputs']):
             x = utils.get_socket_x(node, 'input', camera)
             y = utils.get_socket_y(node, i, camera)
             pygame.draw.circle(screen, '#ffffff', (x, y), socket_r)
-            text_surface = font.render(f'{socket["val"]}', False, (255, 255, 255))
-            screen.blit(text_surface, (x + 16, y + 16))
+            draw_socket_val(f'{socket["val"]}', x, y)
         for i, socket in enumerate(node['outputs']):
             x = utils.get_socket_x(node, 'output', camera)
             y = utils.get_socket_y(node, i, camera)
             pygame.draw.circle(screen, '#ffffff', (x, y), socket_r)
-            text_surface = font.render(f'{socket["val"]}', False, (255, 255, 255))
-            screen.blit(text_surface, (x + 16, y + 16))
+            draw_socket_val(f'{socket["val"]}', x, y)
 
 def draw_edges():
     for edge in edges:
@@ -203,6 +262,17 @@ def draw_debug():
     screen.blit(text_surface, (0, y))
     y += 24
 
+################################################
+# camera
+################################################
+def camera_pan():
+    if pan['state'] == True:
+        camera['x'] = pan['camera_x_start'] + (mouse['x'] - mouse['x_pan_start']) // camera['zoom']
+        camera['y'] = pan['camera_y_start'] + (mouse['y'] - mouse['y_pan_start']) // camera['zoom']
+
+################################################
+# mouse
+################################################
 def get_clicked_node_index():
     node_index = -1
     for i, node in enumerate(nodes):
@@ -215,17 +285,6 @@ def get_clicked_node_index():
             break
     return node_index
 
-################################################
-# camera
-################################################
-def camera_pan():
-    if pan['state'] == True:
-        camera['x'] = pan['camera_x_start'] + (mouse['x'] - mouse['x_pan_start']) // camera['zoom']
-        camera['y'] = pan['camera_y_start'] + (mouse['y'] - mouse['y_pan_start']) // camera['zoom']
-
-################################################
-# mouse
-################################################
 def mouse_drag_node():
     global drag
     if drag['state'] == True:
@@ -300,6 +359,7 @@ def manage_inputs():
 def manage_update():
     mouse_drag_node()
     camera_pan()
+    update_nodes()
 
 def manage_draw():
     screen.fill('#101010')

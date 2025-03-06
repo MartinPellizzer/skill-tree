@@ -4,6 +4,6 @@ def get_socket_x(node, side, camera):
     return x
 
 def get_socket_y(node, i, camera):
-    y = (node['y'] + 32*i + camera['y']) * camera['zoom']
+    y = (node['y'] + (32*(i+1)) + camera['y']) * camera['zoom']
     return y
 
