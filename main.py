@@ -13,6 +13,9 @@ window_h = 1080
 
 screen = pygame.display.set_mode([window_w, window_h])
 
+nodes_filepath_cur = ''
+edges_filepath_cur = ''
+
 mouse = {
     'x': 0,
     'y': 0,
@@ -52,101 +55,128 @@ node_focus_index = -1
 nodes = []
 edges = []
 
-nodes.append(lib_nodes.node_skill_start(_id=3, name='ART_PLANTS', x=64*4, y=64*5))
-nodes.append(lib_nodes.node_skill(_id=4, name='LV1: TEXT', x=64*8, y=64*5))
-nodes.append(lib_nodes.node_skill(_id=5, name='LV2: LINKS', x=64*12, y=64*5))
-nodes.append(lib_nodes.node_skill(_id=6, name='LV3: IMAGES', x=64*16, y=64*5))
-nodes.append(lib_nodes.node_skill(_id=7, name='LV4: STUDIES', x=64*20, y=64*5))
+def load_nodes():
+    global nodes
+    with open(nodes_filepath_cur) as f:
+        nodes = json.load(f)
 
-nodes.append(lib_nodes.node_skill(_id=8, name='LV0: ART_PLANT', x=64*8, y=64*8))
-nodes.append(lib_nodes.node_skill(_id=9, name='LV1: TEXT', x=64*12, y=64*8))
+def load_edges():
+    global edges
+    with open(edges_filepath_cur) as f:
+        edges = json.load(f)
 
-edge_0 = {
-    'id': 0,
-    'input': {
-        'node_id': 2,
-        'socket_id': 0,
-    },
-    'output': {
-        'node_id': 0,
-        'socket_id': 0,
-    },
-}
+def save_nodes():
+    global nodes
+    j = json.dumps(nodes, indent=4)
+    with open(nodes_filepath_cur, 'w') as f:
+        print(j, file=f)
 
-edge_1 = {
-    'id': 0,
-    'input': {
-        'node_id': 2,
-        'socket_id': 1,
-    },
-    'output': {
-        'node_id': 1,
-        'socket_id': 0,
-    },
-}
+def save_edges():
+    global edges
+    j = json.dumps(edges, indent=4)
+    with open(edges_filepath_cur, 'w') as f:
+        print(j, file=f)
 
-# edges.append(edge_0)
-# edges.append(edge_1)
+def test_data_init():
+    global nodes
+    global edges
+    nodes.append(lib_nodes.node_skill_start(_id=3, name='ART_PLANTS', x=64*4, y=64*5))
+    nodes.append(lib_nodes.node_skill(_id=4, name='LV1: TEXT', x=64*8, y=64*5))
+    nodes.append(lib_nodes.node_skill(_id=5, name='LV2: LINKS', x=64*12, y=64*5))
+    nodes.append(lib_nodes.node_skill(_id=6, name='LV3: IMAGES', x=64*18, y=64*5))
+    nodes.append(lib_nodes.node_skill(_id=7, name='LV4: STUDIES', x=64*22, y=64*5))
 
-edges.append({
-    'id': 2,
-    'input': {
-        'node_id': 4,
-        'socket_id': 0,
-    },
-    'output': {
-        'node_id': 3,
-        'socket_id': 0,
-    },
-})
+    nodes.append(lib_nodes.node_skill(_id=8, name='LV0: ART_PLANT', x=64*8, y=64*8))
+    nodes.append(lib_nodes.node_skill(_id=9, name='LV1: TEXT', x=64*12, y=64*8))
 
-edges.append({
-    'id': 3,
-    'input': {
-        'node_id': 5,
-        'socket_id': 0,
-    },
-    'output': {
-        'node_id': 4,
-        'socket_id': 0,
-    },
-})
+    edge_0 = {
+        'id': 0,
+        'input': {
+            'node_id': 2,
+            'socket_id': 0,
+        },
+        'output': {
+            'node_id': 0,
+            'socket_id': 0,
+        },
+    }
 
-edges.append({
-    'id': 4,
-    'input': {
-        'node_id': 8,
-        'socket_id': 0,
-    },
-    'output': {
-        'node_id': 5,
-        'socket_id': 0,
-    },
-})
+    edge_1 = {
+        'id': 0,
+        'input': {
+            'node_id': 2,
+            'socket_id': 1,
+        },
+        'output': {
+            'node_id': 1,
+            'socket_id': 0,
+        },
+    }
 
-edges.append({
-    'id': 5,
-    'input': {
-        'node_id': 9,
-        'socket_id': 0,
-    },
-    'output': {
-        'node_id': 8,
-        'socket_id': 0,
-    },
-})
+    # edges.append(edge_0)
+    # edges.append(edge_1)
 
-edges.append({
-    'id': 6,
-    'input': {
-        'node_id': 6,
-        'socket_id': 0,
-    },
-    'output': {
-        'node_id': 8,
-        'socket_id': 0,
-    },
-})
+    edges.append({
+        'id': 2,
+        'input': {
+            'node_id': 4,
+            'socket_id': 0,
+        },
+        'output': {
+            'node_id': 3,
+            'socket_id': 0,
+        },
+    })
+
+    edges.append({
+        'id': 3,
+        'input': {
+            'node_id': 5,
+            'socket_id': 0,
+        },
+        'output': {
+            'node_id': 4,
+            'socket_id': 0,
+        },
+    })
+
+    edges.append({
+        'id': 4,
+        'input': {
+            'node_id': 8,
+            'socket_id': 0,
+        },
+        'output': {
+            'node_id': 5,
+            'socket_id': 0,
+        },
+    })
+
+    edges.append({
+        'id': 5,
+        'input': {
+            'node_id': 9,
+            'socket_id': 0,
+        },
+        'output': {
+            'node_id': 8,
+            'socket_id': 0,
+        },
+    })
+
+    edges.append({
+        'id': 6,
+        'input': {
+            'node_id': 6,
+            'socket_id': 0,
+        },
+        'output': {
+            'node_id': 8,
+            'socket_id': 0,
+        },
+    })
+
+# test_data_init()
 
 font = pygame.font.SysFont('Arial', 16)
 
@@ -400,6 +430,8 @@ def mouse_main():
 ################################################
 def manage_inputs():
     global running
+    global nodes_filepath_cur
+    global edges_filepath_cur
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -417,6 +449,14 @@ def manage_inputs():
                 else:
                     if nodes[node_focus_index]['outputs'][0]['val'] < 10:
                         nodes[node_focus_index]['outputs'][0]['val'] += 1
+            elif event.key == pygame.K_s and pygame.key.get_mods() & pygame.KMOD_CTRL:
+                save_nodes()
+                save_edges()
+            elif event.key == pygame.K_l and pygame.key.get_mods() & pygame.KMOD_CTRL:
+                nodes_filepath_cur = 'nodes.json'
+                edges_filepath_cur = 'edges.json'
+                load_nodes()
+                load_edges()
         if event.type == pygame.MOUSEWHEEL:
             camera['zoom'] += event.y
             if event.y == -1:

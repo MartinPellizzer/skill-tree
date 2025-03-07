@@ -1,0 +1,57 @@
+[
+    {
+        "id": 2,
+        "input": {
+            "node_id": 4,
+            "socket_id": 0
+        },
+        "output": {
+            "node_id": 3,
+            "socket_id": 0
+        }
+    },
+    {
+        "id": 3,
+        "input": {
+            "node_id": 5,
+            "socket_id": 0
+        },
+        "output": {
+            "node_id": 4,
+            "socket_id": 0
+        }
+    },
+    {
+        "id": 4,
+        "input": {
+            "node_id": 8,
+            "socket_id": 0
+        },
+        "output": {
+            "node_id": 5,
+            "socket_id": 0
+        }
+    },
+    {
+        "id": 5,
+        "input": {
+            "node_id": 9,
+            "socket_id": 0
+        },
+        "output": {
+            "node_id": 8,
+            "socket_id": 0
+        }
+    },
+    {
+        "id": 6,
+        "input": {
+            "node_id": 6,
+            "socket_id": 0
+        },
+        "output": {
+            "node_id": 8,
+            "socket_id": 0
+        }
+    }
+]

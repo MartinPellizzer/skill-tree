@@ -1,0 +1,158 @@
+[
+    {
+        "id": 3,
+        "type": "skill",
+        "name": "ART_PLANTS",
+        "background_color": "#303030",
+        "outline_color": "#303030",
+        "x": 256,
+        "y": 320,
+        "w": 192,
+        "h": 64,
+        "inputs": [],
+        "outputs": [
+            {
+                "id": 0,
+                "val": 1
+            }
+        ]
+    },
+    {
+        "id": 4,
+        "type": "skill",
+        "name": "LV1: TEXT",
+        "background_color": "#303030",
+        "outline_color": "#303030",
+        "x": 512,
+        "y": 320,
+        "w": 192,
+        "h": 64,
+        "inputs": [
+            {
+                "id": 0,
+                "val": 1
+            }
+        ],
+        "outputs": [
+            {
+                "id": 0,
+                "val": 1
+            }
+        ]
+    },
+    {
+        "id": 5,
+        "type": "skill",
+        "name": "LV2: LINKS",
+        "background_color": "#303030",
+        "outline_color": "#fb923c",
+        "x": 768,
+        "y": 320,
+        "w": 192,
+        "h": 64,
+        "inputs": [
+            {
+                "id": 0,
+                "val": 1
+            }
+        ],
+        "outputs": [
+            {
+                "id": 0,
+                "val": 0
+            }
+        ]
+    },
+    {
+        "id": 6,
+        "type": "skill",
+        "name": "LV3: IMAGES",
+        "background_color": "#000000",
+        "outline_color": "#303030",
+        "x": 1152,
+        "y": 320,
+        "w": 192,
+        "h": 64,
+        "inputs": [
+            {
+                "id": 0,
+                "val": 0
+            }
+        ],
+        "outputs": [
+            {
+                "id": 0,
+                "val": 0
+            }
+        ]
+    },
+    {
+        "id": 7,
+        "type": "skill",
+        "name": "LV4: STUDIES",
+        "background_color": "#000000",
+        "outline_color": "#303030",
+        "x": 1408,
+        "y": 320,
+        "w": 192,
+        "h": 64,
+        "inputs": [
+            {
+                "id": 0,
+                "val": 0
+            }
+        ],
+        "outputs": [
+            {
+                "id": 0,
+                "val": 0
+            }
+        ]
+    },
+    {
+        "id": 8,
+        "type": "skill",
+        "name": "LV0: ART_PLANT",
+        "background_color": "#000000",
+        "outline_color": "#303030",
+        "x": 512,
+        "y": 512,
+        "w": 192,
+        "h": 64,
+        "inputs": [
+            {
+                "id": 0,
+                "val": 0
+            }
+        ],
+        "outputs": [
+            {
+                "id": 0,
+                "val": 0
+            }
+        ]
+    },
+    {
+        "id": 9,
+        "type": "skill",
+        "name": "LV1: TEXT",
+        "background_color": "#000000",
+        "outline_color": "#303030",
+        "x": 768,
+        "y": 512,
+        "w": 192,
+        "h": 64,
+        "inputs": [
+            {
+                "id": 0,
+                "val": 0
+            }
+        ],
+        "outputs": [
+            {
+                "id": 0,
+                "val": 0
+            }
+        ]
+    }
+]
