@@ -468,7 +468,6 @@ def node_delete():
             edges_to_keep.append(edge)
         edges = edges_to_keep
         del nodes[node_focus_index]
-
     node_focus_index = -1
             
 
@@ -526,6 +525,16 @@ def manage_inputs():
                 edges_filepath_cur = 'edges.json'
                 load_nodes()
                 load_edges()
+            elif event.key == pygame.K_BACKSPACE:
+                if node_focus_index != -1:
+                    nodes[node_focus_index]['name'] = nodes[node_focus_index]['name'][:-1]
+            elif event.key == pygame.K_SPACE:
+                if node_focus_index != -1:
+                    nodes[node_focus_index]['name'] += ' '
+            else:
+                if node_focus_index != -1:
+                    nodes[node_focus_index]['name'] += pygame.key.name(event.key)
+
         if event.type == pygame.MOUSEWHEEL:
             camera['zoom'] += event.y
             if event.y == -1:
