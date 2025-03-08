@@ -454,6 +454,24 @@ def node_create():
     next_id = nodes_get_next_id()
     nodes.append(lib_nodes.node_skill(_id=next_id, name='LV?: ???', x=x, y=y))
 
+def node_delete():
+    global edges
+    global node_focus_index
+    if node_focus_index != -1:
+        node_id = nodes[node_focus_index]['id']
+        edges_to_keep = []
+        for edge in edges:
+            if edge['input']['node_id'] == node_id:
+                continue
+            if edge['output']['node_id'] == node_id:
+                continue
+            edges_to_keep.append(edge)
+        edges = edges_to_keep
+        del nodes[node_focus_index]
+
+    node_focus_index = -1
+            
+
 def mouse_right():
     mouse_right_press = pygame.mouse.get_pressed()[2]
     if mouse_right_press == True:
@@ -487,6 +505,8 @@ def manage_inputs():
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False
+            if event.key == pygame.K_DELETE:
+                node_delete()
             elif event.key == pygame.K_KP_MINUS:
                 if nodes[node_focus_index]['outputs'][0]['val'] > 0:
                     nodes[node_focus_index]['outputs'][0]['val'] -= 1
