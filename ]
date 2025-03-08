@@ -326,8 +326,8 @@ def draw_debug():
     text_surface = font.render(f'x: {mouse["x"]} - y: {mouse["y"]}', False, (255, 255, 255))
     screen.blit(text_surface, (0, y))
     y += 24
-    world_x, world_y = world_pos(mouse['x'], mouse['y'])
-    text_surface = font.render(f'x: {world_x} - y: {world_y}', False, (255, 255, 255))
+    mouse_abs_x, mouse_abs_y = mouse_abs_pos()
+    text_surface = font.render(f'x: {mouse_abs_x} - y: {mouse_abs_y}', False, (255, 255, 255))
     screen.blit(text_surface, (0, y))
     y += 24
     '''
@@ -367,17 +367,12 @@ def camera_pan():
 ################################################
 def get_clicked_node_index():
     index = -1
-    mouse_world_x, mouse_world_y = world_pos(mouse['x'], mouse['y'])
-    print(mouse_world_x, mouse_world_y)
     for i, node in enumerate(nodes):
-        x1 = node['x']
-        y1 = node['y']
-        x2 = node['x'] + node['w']
-        y2 = node['y'] + node['h']
-        if (mouse_world_x >= x1 and 
-            mouse_world_y >= y1 and 
-            mouse_world_x < x2 and 
-            mouse_world_y < y2):
+        x_1 = node['x'] + camera['x']
+        y_1 = node['y'] + camera['y']
+        x_2 = node['x'] + camera['x'] + node['w']
+        y_2 = node['y'] + camera['y'] + node['h']
+        if mouse['x'] >= x_1 and mouse['y'] >= y_1 and mouse['x'] < x_2 and mouse['y'] < y_2:
             index = i
             break
     return index
@@ -439,20 +434,17 @@ def nodes_get_next_id():
     else: next_id = 0
     return next_id
 
-def world_pos(x, y):
-    world_x = (x // camera['zoom']) - camera['x']
-    world_y = (y // camera['zoom']) - camera['y']
-    return world_x, world_y
-
-def node_world_pos(x, y):
-    world_x = (x * camera['zoom']) + camera['x']
-    world_y = (y * camera['zoom']) + camera['y']
-    return world_x, world_y
+def mouse_abs_pos():
+    x = (mouse['x'] // mouse['zoom']) - camera['x']
+    y = (mouse['y'] // mouse['zoom']) - camera['y']
+    return x, y
 
 def node_create():
-    x, y = world_pos(mouse['x'], mouse['y'])
+    x = mouse['x'] - camera['x']
+    y = mouse['y'] - camera['y']
     next_id = nodes_get_next_id()
-    nodes.append(lib_nodes.node_skill(_id=next_id, name='LV?: ???', x=x, y=y))
+    nodes.append(lib_nodes.node_skill(_id=next_id, name='LV1: TEXT', x=x, y=y))
+    print(nodes[-1])
 
 def mouse_right():
     mouse_right_press = pygame.mouse.get_pressed()[2]
