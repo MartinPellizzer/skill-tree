@@ -46,6 +46,14 @@ drag = {
     'node_y_start': -1,
 }
 
+edge_tmp = {
+    'dragging': False,
+    'x1': -1,
+    'y1': -1,
+    'x2': -1,
+    'y2': -1,
+}
+
 pan = {
     'state': False,
 }
@@ -321,6 +329,25 @@ def draw_edges():
         if x1 != -1 and y1 != -1 and x2 != -1 and y2 != -1:
             pygame.draw.line(screen, '#ffffff', (x1, y1), (x2, y2), camera['zoom'])
 
+# ;jump
+def draw_edge_tmp():
+    x2, y2 = world_pos(mouse['x'], mouse['y'])
+    if edge_tmp['dragging']:
+        x1 = edge_tmp['x1']
+        y1 = edge_tmp['y1']
+        pygame.draw.line(screen, '#ffffff', (x1, y1), (x2, y2), camera['zoom'])
+    '''
+        if edge_tmp['input']['socket_id'] != -1:
+            node = [node for node in nodes if node['id'] == edge_tmp['input']['node_id']][0]
+            x1 = utils.get_socket_x(node, 'input', camera)
+            y1 = utils.get_socket_y(node, 0, camera)
+        elif edge_tmp['output']['socket_id'] != -1:
+            node = [node for node in nodes if node['id'] == edge_tmp['output']['node_id']][0]
+            x1 = utils.get_socket_x(node, 'output', camera)
+            y1 = utils.get_socket_y(node, 0, camera)
+        pygame.draw.line(screen, '#ffffff', (x1, y1), (x2, y2), camera['zoom'])
+    '''
+
 def draw_debug():
     y = 24
     text_surface = font.render(f'x: {mouse["x"]} - y: {mouse["y"]}', False, (255, 255, 255))
@@ -368,7 +395,6 @@ def camera_pan():
 def get_clicked_node_index():
     index = -1
     mouse_world_x, mouse_world_y = world_pos(mouse['x'], mouse['y'])
-    print(mouse_world_x, mouse_world_y)
     for i, node in enumerate(nodes):
         x1 = node['x']
         y1 = node['y']
@@ -388,8 +414,48 @@ def mouse_drag_node():
         nodes[drag['node_index']]['x'] = drag['node_x_start'] + (mouse['x'] - mouse['x_drag_start'])
         nodes[drag['node_index']]['y'] = drag['node_y_start'] + (mouse['y'] - mouse['y_drag_start'])
 
-def mouse_left():
+# ;jump
+def mouse_click_socket():
+    global edge_tmp
+    clicked = False
+    mouse_world_x, mouse_world_y = world_pos(mouse['x'], mouse['y'])
+    for node in nodes:
+        x = utils.get_socket_x(node, 'input', camera)
+        y = utils.get_socket_y(node, 0, camera)
+        if (mouse_world_x >= x - 10 and
+            mouse_world_y >= y - 10 and
+            mouse_world_x <= x + 10 and
+            mouse_world_y <= y + 10):
+            clicked = True
+            edge_tmp['dragging'] = True
+            edge_tmp['x1'] = x
+            edge_tmp['y1'] = y
+            break
+        x = utils.get_socket_x(node, 'output', camera)
+        y = utils.get_socket_y(node, 0, camera)
+        if (mouse_world_x >= x - 10 and
+            mouse_world_y >= y - 10 and
+            mouse_world_x <= x + 10 and
+            mouse_world_y <= y + 10):
+            clicked = True
+            edge_tmp['dragging'] = True
+            edge_tmp['x1'] = x
+            edge_tmp['y1'] = y
+            break
+    return clicked
+
+def mouse_click_node():
     global node_focus_index
+    node_focus_index = get_clicked_node_index()
+    if node_focus_index != -1:
+        drag['state'] = True
+        drag['node_index'] = node_focus_index
+        mouse['x_drag_start'] = mouse['x']
+        mouse['y_drag_start'] = mouse['y']
+        drag['node_x_start'] = nodes[drag['node_index']]['x']
+        drag['node_y_start'] = nodes[drag['node_index']]['y']
+
+def mouse_left():
     global drag
     mouse_left_press = pygame.mouse.get_pressed()[0]
     if mouse_left_press == True:
@@ -397,22 +463,24 @@ def mouse_left():
         if mouse['left_click_old'] != mouse['left_click_cur']:
             mouse['left_click_old'] = mouse['left_click_cur']
             print('left click')
-            # selected node to drag?
-            node_focus_index = get_clicked_node_index()
-            if node_focus_index != -1:
-                drag['state'] = True
-                drag['node_index'] = node_focus_index
-                mouse['x_drag_start'] = mouse['x']
-                mouse['y_drag_start'] = mouse['y']
-                drag['node_x_start'] = nodes[drag['node_index']]['x']
-                drag['node_y_start'] = nodes[drag['node_index']]['y']
+            clicked = mouse_click_socket()
+            if not clicked: mouse_click_node()
     else:
         mouse['left_click_cur'] = 0
         if mouse['left_click_old'] != mouse['left_click_cur']:
             mouse['left_click_old'] = mouse['left_click_cur']
-            print('left release')
+            # print('left release')
             drag['state'] = False
             drag['node_index'] = -1
+            # reset edge tmp
+            edge_tmp['dragging'] = False
+            '''
+            edge_tmp['id'] = 0
+            edge_tmp['input']['node_id'] = -1
+            edge_tmp['input']['socket_id'] = -1
+            edge_tmp['output']['node_id'] = -1
+            edge_tmp['output']['socket_id'] = -1
+            '''
 
 def mouse_middle():
     mouse_middle_press = pygame.mouse.get_pressed()[1]
@@ -552,6 +620,7 @@ def manage_draw():
     screen.fill('#101010')
     draw_nodes()
     draw_edges()
+    draw_edge_tmp()
     draw_debug()
     pygame.display.flip()
 
