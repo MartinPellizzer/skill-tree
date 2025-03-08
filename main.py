@@ -331,7 +331,11 @@ def draw_edges():
 
 # ;jump
 def draw_edge_tmp():
-    x2, y2 = world_pos(mouse['x'], mouse['y'])
+    global edge_tmp
+    # edge_tmp['x2'], edge_tmp['y2'] = world_pos(mouse['x'], mouse['y'])
+    edge_tmp['x2'], edge_tmp['y2'] = mouse['x'], mouse['y']
+    x2 = edge_tmp['x2']
+    y2 = edge_tmp['y2']
     if edge_tmp['dragging']:
         x1 = edge_tmp['x1']
         y1 = edge_tmp['y1']
@@ -411,21 +415,20 @@ def get_clicked_node_index():
 def mouse_drag_node():
     global drag
     if drag['state'] == True:
-        nodes[drag['node_index']]['x'] = drag['node_x_start'] + (mouse['x'] - mouse['x_drag_start'])
-        nodes[drag['node_index']]['y'] = drag['node_y_start'] + (mouse['y'] - mouse['y_drag_start'])
+        nodes[drag['node_index']]['x'] = drag['node_x_start'] + (mouse['x'] - mouse['x_drag_start']) // camera['zoom']
+        nodes[drag['node_index']]['y'] = drag['node_y_start'] + (mouse['y'] - mouse['y_drag_start']) // camera['zoom']
 
-# ;jump
+# TODO: get correct socket position (doesn't work after panning)
 def mouse_click_socket():
     global edge_tmp
     clicked = False
-    mouse_world_x, mouse_world_y = world_pos(mouse['x'], mouse['y'])
     for node in nodes:
         x = utils.get_socket_x(node, 'input', camera)
         y = utils.get_socket_y(node, 0, camera)
-        if (mouse_world_x >= x - 10 and
-            mouse_world_y >= y - 10 and
-            mouse_world_x <= x + 10 and
-            mouse_world_y <= y + 10):
+        if (mouse['x'] >= x - 10 and
+            mouse['y'] >= y - 10 and
+            mouse['x'] <= x + 10 and
+            mouse['y'] <= y + 10):
             clicked = True
             edge_tmp['dragging'] = True
             edge_tmp['x1'] = x
@@ -433,10 +436,12 @@ def mouse_click_socket():
             break
         x = utils.get_socket_x(node, 'output', camera)
         y = utils.get_socket_y(node, 0, camera)
-        if (mouse_world_x >= x - 10 and
-            mouse_world_y >= y - 10 and
-            mouse_world_x <= x + 10 and
-            mouse_world_y <= y + 10):
+        # print(f'{x-10} < {mouse_world_x} < {x+10}')
+        # print(f'{y-10} < {mouse_world_y} < {y+10}')
+        if (mouse['x'] >= x - 10 and
+            mouse['y'] >= y - 10 and
+            mouse['x'] <= x + 10 and
+            mouse['y'] <= y + 10):
             clicked = True
             edge_tmp['dragging'] = True
             edge_tmp['x1'] = x
@@ -462,7 +467,6 @@ def mouse_left():
         mouse['left_click_cur'] = 1
         if mouse['left_click_old'] != mouse['left_click_cur']:
             mouse['left_click_old'] = mouse['left_click_cur']
-            print('left click')
             clicked = mouse_click_socket()
             if not clicked: mouse_click_node()
     else:
@@ -473,14 +477,60 @@ def mouse_left():
             drag['state'] = False
             drag['node_index'] = -1
             # reset edge tmp
-            edge_tmp['dragging'] = False
-            '''
-            edge_tmp['id'] = 0
-            edge_tmp['input']['node_id'] = -1
-            edge_tmp['input']['socket_id'] = -1
-            edge_tmp['output']['node_id'] = -1
-            edge_tmp['output']['socket_id'] = -1
-            '''
+            if edge_tmp['dragging'] == True:
+                edge_tmp['dragging'] = False
+                edge_new = {
+                    'id': -1,
+                    'input': {
+                        'node_id': -1,
+                        'socket_id': -1,
+                    },
+                    'output': {
+                        'node_id': -1,
+                        'socket_id': -1,
+                    },
+                }
+                edge_x1 = edge_tmp['x1']
+                edge_y1 = edge_tmp['y1']
+                edge_x2 = edge_tmp['x2']
+                edge_y2 = edge_tmp['y2']
+                for node in nodes:
+                    socket_x = utils.get_socket_x(node, 'input', camera)
+                    socket_y = utils.get_socket_y(node, 0, camera)
+                    if (edge_x1 >= socket_x-10 and 
+                        edge_x1 <= socket_x+10 and 
+                        edge_y1 >= socket_y-10 and 
+                        edge_y1 <= socket_y+10):
+                        edge_new['input']['node_id'] = node['id']
+                        edge_new['input']['socket_id'] = node['inputs'][0]['id']
+                    if (edge_x2 >= socket_x-10 and 
+                        edge_x2 <= socket_x+10 and 
+                        edge_y2 >= socket_y-10 and 
+                        edge_y2 <= socket_y+10):
+                        edge_new['input']['node_id'] = node['id']
+                        edge_new['input']['socket_id'] = node['inputs'][0]['id']
+                    socket_x = utils.get_socket_x(node, 'output', camera)
+                    socket_y = utils.get_socket_y(node, 0, camera)
+                    if (edge_x1 >= socket_x-10 and 
+                        edge_x1 <= socket_x+10 and 
+                        edge_y1 >= socket_y-10 and 
+                        edge_y1 <= socket_y+10):
+                        edge_new['output']['node_id'] = node['id']
+                        edge_new['output']['socket_id'] = node['outputs'][0]['id']
+                    if (edge_x2 >= socket_x-10 and 
+                        edge_x2 <= socket_x+10 and 
+                        edge_y2 >= socket_y-10 and 
+                        edge_y2 <= socket_y+10):
+                        edge_new['output']['node_id'] = node['id']
+                        edge_new['output']['socket_id'] = node['outputs'][0]['id']
+                edge_new['id'] = edges_get_next_id()
+                edges.append(edge_new)
+
+def edges_get_next_id():
+    ids = [edge['id'] for edge in edges]
+    if ids != []: next_id = ids[-1] + 1
+    else: next_id = 0
+    return next_id
 
 def mouse_middle():
     mouse_middle_press = pygame.mouse.get_pressed()[1]
@@ -599,6 +649,8 @@ def manage_inputs():
             elif event.key == pygame.K_SPACE:
                 if node_focus_index != -1:
                     nodes[node_focus_index]['name'] += ' '
+            elif event.key == pygame.K_LCTRL:
+                pass
             else:
                 if node_focus_index != -1:
                     nodes[node_focus_index]['name'] += pygame.key.name(event.key)

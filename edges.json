@@ -44,13 +44,167 @@
         }
     },
     {
-        "id": 6,
+        "id": 7,
         "input": {
-            "node_id": 6,
+            "node_id": 11,
             "socket_id": 0
         },
         "output": {
+            "node_id": 9,
+            "socket_id": 0
+        }
+    },
+    {
+        "id": 8,
+        "input": {
+            "node_id": 12,
+            "socket_id": 0
+        },
+        "output": {
+            "node_id": 11,
+            "socket_id": 0
+        }
+    },
+    {
+        "id": 9,
+        "input": {
+            "node_id": 13,
+            "socket_id": 0
+        },
+        "output": {
+            "node_id": 12,
+            "socket_id": 0
+        }
+    },
+    {
+        "id": 10,
+        "input": {
+            "node_id": 14,
+            "socket_id": 0
+        },
+        "output": {
+            "node_id": 9,
+            "socket_id": 0
+        }
+    },
+    {
+        "id": 11,
+        "input": {
+            "node_id": 10,
+            "socket_id": 0
+        },
+        "output": {
+            "node_id": 13,
+            "socket_id": 0
+        }
+    },
+    {
+        "id": 12,
+        "input": {
+            "node_id": 7,
+            "socket_id": 0
+        },
+        "output": {
+            "node_id": 14,
+            "socket_id": 0
+        }
+    },
+    {
+        "id": 13,
+        "input": {
+            "node_id": 15,
+            "socket_id": 0
+        },
+        "output": {
+            "node_id": 13,
+            "socket_id": 0
+        }
+    },
+    {
+        "id": 14,
+        "input": {
+            "node_id": 16,
+            "socket_id": 0
+        },
+        "output": {
+            "node_id": 15,
+            "socket_id": 0
+        }
+    },
+    {
+        "id": 15,
+        "input": {
+            "node_id": 17,
+            "socket_id": 0
+        },
+        "output": {
+            "node_id": 16,
+            "socket_id": 0
+        }
+    },
+    {
+        "id": 16,
+        "input": {
+            "node_id": 18,
+            "socket_id": 0
+        },
+        "output": {
+            "node_id": 10,
+            "socket_id": 0
+        }
+    },
+    {
+        "id": 17,
+        "input": {
             "node_id": 8,
+            "socket_id": 0
+        },
+        "output": {
+            "node_id": -1,
+            "socket_id": -1
+        }
+    },
+    {
+        "id": 18,
+        "input": {
+            "node_id": 12,
+            "socket_id": 0
+        },
+        "output": {
+            "node_id": -1,
+            "socket_id": -1
+        }
+    },
+    {
+        "id": 19,
+        "input": {
+            "node_id": 19,
+            "socket_id": 0
+        },
+        "output": {
+            "node_id": 7,
+            "socket_id": 0
+        }
+    },
+    {
+        "id": 20,
+        "input": {
+            "node_id": 20,
+            "socket_id": 0
+        },
+        "output": {
+            "node_id": 18,
+            "socket_id": 0
+        }
+    },
+    {
+        "id": 21,
+        "input": {
+            "node_id": 21,
+            "socket_id": 0
+        },
+        "output": {
+            "node_id": 17,
             "socket_id": 0
         }
     }
